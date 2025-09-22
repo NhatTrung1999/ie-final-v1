@@ -22,7 +22,7 @@ const TableCT = () => {
       </div>
       <div className="w-full overflow-x-auto max-h-[450px]">
         <table className="w-full min-w-max">
-          <thead className=" bg-gray-400 sticky top-0 text-white">
+          <thead className=" bg-gray-400 sticky top-0 text-white z-10">
             <tr>
               <th className="px-4 py-4">No</th>
               <th className="px-4 py-4">Progress Stage Part Name</th>

@@ -9,7 +9,7 @@ import TableCT from './TableCT';
 const Main = () => {
   return (
     <div className="flex relative">
-      <div className="fixed top-[70px] left-0 bottom-0 w-sm overflow-y-auto grid grid-rows-4 gap-2 p-1">
+      <div className="fixed top-[70px] left-0 bottom-0 z-50 w-sm overflow-y-auto grid grid-rows-4 gap-2 p-1">
         <StageList />
         <ControlPanel />
         <HistoryPlayback />

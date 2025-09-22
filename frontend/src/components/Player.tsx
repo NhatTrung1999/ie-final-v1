@@ -1,9 +1,10 @@
 import ReactPlayer from 'react-player';
+
 const Player = () => {
   return (
-    <div className=" h-[550px] w-full border">
+    <div className=" h-[550px] w-full border border-gray-500 bg-black">
       <ReactPlayer
-        src="https://www.youtube.com/live/VKBu4Ip-ors?si=csY3AoB1JBF78JGl"
+        src={'../assets/video/S1. Marking Collar Lining-ok.MOV'}
         width={'100%'}
         height={'100%'}
         style={{ objectFit: 'contain' }}

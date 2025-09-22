@@ -2,6 +2,7 @@ import { FaPlus, FaTrash } from 'react-icons/fa6';
 import { FaSyncAlt } from 'react-icons/fa';
 import { useRef } from 'react';
 import { TAB_STAGE_LIST } from '../types/stagelist';
+import Modal from './Modal';
 
 const StageList = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -86,6 +87,7 @@ const StageList = () => {
           ))}
         </div>
       </div>
+      {false && <Modal />}
     </>
   );
 };
