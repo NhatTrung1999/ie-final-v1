@@ -1,6 +1,6 @@
 import { FaPlus, FaTrash } from 'react-icons/fa6';
 import { FaSyncAlt } from 'react-icons/fa';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { TAB_STAGE_LIST } from '../types/stagelist';
 import Modal from './Modal';
 
@@ -9,6 +9,7 @@ const StageList = () => {
   const isDragging = useRef<boolean>(false);
   const startX = useRef<number>(0);
   const scrollLeftStart = useRef<number>(0);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement | null>) => {
     isDragging.current = true;
@@ -53,7 +54,10 @@ const StageList = () => {
               <div className="cursor-pointer p-1">
                 <FaSyncAlt size={16} />
               </div>
-              <div className="cursor-pointer p-1">
+              <div
+                className="cursor-pointer p-1"
+                onClick={() => setIsOpen(true)}
+              >
                 <FaPlus size={20} />
               </div>
             </div>
@@ -87,7 +91,7 @@ const StageList = () => {
           ))}
         </div>
       </div>
-      {false && <Modal />}
+      {isOpen && <Modal setIsOpen={setIsOpen} />}
     </>
   );
 };
