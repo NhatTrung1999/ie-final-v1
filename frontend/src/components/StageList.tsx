@@ -82,7 +82,7 @@ const StageList = () => {
         </div>
         <div className=" flex-1 overflow-y-auto flex flex-col gap-2 p-2">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div className="hover:bg-gray-300 text-gray-700 cursor-pointer px-2 py-1 rounded-md font-bold  flex items-center justify-between">
+            <div key={i} className="hover:bg-gray-300 text-gray-700 cursor-pointer px-2 py-1 rounded-md font-bold  flex items-center justify-between">
               <div className="truncate">Item {i + 1}</div>
               <div className="cursor-pointer p-2">
                 <FaTrash />

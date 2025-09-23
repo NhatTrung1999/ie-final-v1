@@ -14,6 +14,7 @@ const initialValues: IFormModal = {
   stage: '',
   area: 'CUTTING',
   article: '',
+  files: [],
 };
 
 const validationSchema = Yup.object({
@@ -22,6 +23,9 @@ const validationSchema = Yup.object({
   stage: Yup.string().required('Please do not it blank!'),
   area: Yup.string().required('Please do not it blank!'),
   article: Yup.string().required('Please do not it blank!'),
+  files: Yup.array()
+    .min(1, 'Please choose at least 1 video!')
+    .max(5, 'Upload a maximum of 5 videos!'),
 });
 
 const Modal = ({ setIsOpen }: Props) => {
@@ -173,8 +177,20 @@ const Modal = ({ setIsOpen }: Props) => {
               id="file"
               name="file"
               multiple
+              accept="video/*"
+              onChange={(e) => {
+                formik.setFieldValue(
+                  'files',
+                  Array.from(e.currentTarget.files ?? [])
+                );
+              }}
               className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
             />
+            {formik.touched.files && formik.errors.files ? (
+              <div className="text-red-500 text-sm mt-1">
+                {formik.errors.files as string}
+              </div>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <button

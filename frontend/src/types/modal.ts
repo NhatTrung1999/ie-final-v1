@@ -4,4 +4,5 @@ export interface IFormModal {
   stage: string;
   area: string;
   article: string;
+  files: File[]
 }

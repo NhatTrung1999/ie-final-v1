@@ -1,20 +1,47 @@
+import { Fragment } from 'react';
+
 const TableCT = () => {
+  const handleSync = () => {
+    console.log('Sync');
+  };
+
+  const handleConfirm = () => {
+    console.log('Confirm');
+  };
+  const handleExcelLSA = () => {
+    console.log('Excel LSA');
+  };
+  const handleExcelTimeStudy = () => {
+    console.log('Excel Time Study');
+  };
   return (
     <div className="mt-2 border border-gray-500">
       <div className="bg-gray-500 text-white">
         <div className="px-2 py-2 flex items-center justify-between">
           <div className="font-bold">TableCT</div>
           <div className="flex items-center gap-2">
-            <div className="bg-red-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70">
+            <div
+              className="bg-red-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+              onClick={handleSync}
+            >
               Sync
             </div>
-            <div className="bg-blue-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70">
+            <div
+              className="bg-blue-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+              onClick={handleConfirm}
+            >
               Confirm
             </div>
-            <div className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70">
+            <div
+              className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+              onClick={handleExcelLSA}
+            >
               Excel LSA
             </div>
-            <div className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70">
+            <div
+              className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+              onClick={handleExcelTimeStudy}
+            >
               Excel Time Study
             </div>
           </div>
@@ -45,8 +72,8 @@ const TableCT = () => {
           </thead>
           <tbody>
             {Array.from({ length: 5 }).map((_, i) => (
-              <>
-                <tr key={i}>
+              <Fragment key={i}>
+                <tr>
                   <td
                     className="text-center border border-l-0 border-t-0 border-gray-400"
                     rowSpan={2}
@@ -159,7 +186,7 @@ const TableCT = () => {
                     0
                   </td>
                 </tr>
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
