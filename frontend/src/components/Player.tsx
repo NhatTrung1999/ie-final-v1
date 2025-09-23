@@ -1,5 +1,5 @@
 import ReactPlayer from 'react-player';
-import video from '../assets/video/S12. Xin Chào.MOV';
+import video from '../assets/C1. Mantra.mp4';
 
 const Player = () => {
   return (
