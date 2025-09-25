@@ -15,7 +15,6 @@ export class StagelistService {
     createStagelistDto: CreateStagelistDto,
     files: Array<Express.Multer.File>,
   ) {
-    const id = uuidv4();
     const { date, season, stage, area, article } = createStagelistDto;
     const resData: IStageListData[] = [];
 
@@ -32,8 +31,8 @@ export class StagelistService {
       fs.mkdirSync(basePath, { recursive: true });
     }
     for (let item of files) {
+      const id = uuidv4();
       const filePath = path.join(basePath, item.originalname);
-      // console.log(filePath);
       await this.IE.query(
         `INSERT INTO IE_StageList
         (
@@ -80,11 +79,13 @@ export class StagelistService {
         },
       );
 
-      const [result] = await this.IE.query(
+      const result: IStageListData[] = await this.IE.query(
         `SELECT * FROM IE_StageList WHERE Id = ?`,
         { replacements: [id], type: QueryTypes.SELECT },
       );
-      // resData.push(result)
+      resData.push(result[0]);
     }
+
+    return resData;
   }
 }

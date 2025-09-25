@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Req,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,12 +17,10 @@ export class StagelistController {
   @Post('stagelist-upload')
   @UseInterceptors(FilesInterceptor('files'))
   async stagelistUpload(
-    @Body() createStagelistDto: CreateStagelistDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
+    @Body() body: CreateStagelistDto,
   ) {
-    return await this.stagelistService.stagelistUpload(
-      createStagelistDto,
-      files,
-    );
+    console.log(files);
+    return await this.stagelistService.stagelistUpload(body, files);
   }
 }
