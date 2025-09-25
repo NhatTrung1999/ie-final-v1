@@ -3,6 +3,7 @@ import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { IFormModal } from '../types/modal';
+import { useAppSelector } from '../app/hooks';
 
 type Props = {
   setIsOpen: (isOpen: boolean) => void;
@@ -29,11 +30,13 @@ const validationSchema = Yup.object({
 });
 
 const Modal = ({ setIsOpen }: Props) => {
+  const { value } = useAppSelector((state) => state.stagelist);
+
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: (data) => {
-      console.log(data);
+      console.log(data, value);
     },
   });
 
@@ -82,7 +85,7 @@ const Modal = ({ setIsOpen }: Props) => {
               autoComplete="off"
               value={formik.values.season}
               onChange={formik.handleChange}
-              className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
+              className="w-full px-2 py-1.5 uppercase border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               placeholder="Enter your season..."
             />
             {formik.touched.season && formik.errors.season ? (
@@ -156,7 +159,7 @@ const Modal = ({ setIsOpen }: Props) => {
               name="article"
               value={formik.values.article}
               onChange={formik.handleChange}
-              className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
+              className="w-full px-2 py-1.5 uppercase border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               placeholder="Enter your article..."
             />
             {formik.touched.article && formik.errors.article ? (

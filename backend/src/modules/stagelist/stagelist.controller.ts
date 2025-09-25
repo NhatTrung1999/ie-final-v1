@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Param,
   Post,
   Req,
   UploadedFiles,
@@ -20,7 +22,11 @@ export class StagelistController {
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() body: CreateStagelistDto,
   ) {
-    console.log(files);
     return await this.stagelistService.stagelistUpload(body, files);
+  }
+
+  @Delete('stagelist-delete/:id')
+  async stagelistDelete(@Param('id') id: string) {
+    return await this.stagelistService.stagelistDelete(id);
   }
 }

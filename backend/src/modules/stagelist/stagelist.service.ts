@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateStagelistDto } from './dto/create-stagelist.dto';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -32,7 +32,7 @@ export class StagelistService {
     }
     for (let item of files) {
       const id = uuidv4();
-      const filePath = path.join(basePath, item.originalname);
+      const filePath = path.join(basePath, item.filename);
       await this.IE.query(
         `INSERT INTO IE_StageList
         (
@@ -70,7 +70,7 @@ export class StagelistService {
             stage,
             area,
             article,
-            item.originalname,
+            item.filename,
             filePath,
             'admin',
             'LYV',
@@ -87,5 +87,31 @@ export class StagelistService {
     }
 
     return resData;
+  }
+
+  async stagelistDelete(id: string): Promise<string> {
+    const record: IStageListData[] = await this.IE.query(
+      `SELECT * FROM IE_StageList WHERE Id = ?`,
+      { replacements: [id], type: QueryTypes.SELECT },
+    );
+    if (!record.length) {
+      throw new NotFoundException(`No stagelist found with Id: ${id}`);
+    }
+    const { Path } = record[0];
+
+    await this.IE.query(`DELETE FROM IE_StageList WHERE Id = ?`, {
+      replacements: [id],
+      type: QueryTypes.DELETE,
+    });
+
+    if (fs.existsSync(Path)) {
+      fs.unlinkSync(Path);
+    }
+
+    const dir = path.dirname(Path);
+    if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) {
+      fs.rmdirSync(dir, { recursive: true });
+    }
+    return `Stagelist with Id ${id} deleted successfully`;
   }
 }
