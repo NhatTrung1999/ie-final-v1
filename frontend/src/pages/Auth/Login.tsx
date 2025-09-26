@@ -1,12 +1,53 @@
-import login from '../../assets/login.svg';
+import loginImage from '../../assets/login.svg';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import type { ILoginPayload } from '../../types/auth';
+import { useAppDispatch } from '../../app/hooks';
+import { login } from '../../features/auth/authSlice';
+import { useNavigate } from 'react-router';
+
+const initialValues: ILoginPayload = {
+  username: '',
+  password: '',
+  factory: '',
+};
+
+const validationSchema = Yup.object({
+  username: Yup.string().required('Please do not it blank!'),
+  password: Yup.string().required('Please do not it blank!'),
+  factory: Yup.string().required('Please do not it blank!'),
+});
 
 const Login = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit: async (data) => {
+      const { username, password, factory } = data;
+      const result = await dispatch(
+        login({
+          username: username.trim(),
+          password: password.trim(),
+          factory: factory.trim(),
+        })
+      );
+      if (login.fulfilled.match(result)) {
+        navigate('/');
+      } else {
+        console.log(result.error);
+      }
+    },
+  });
+
   return (
     <div className="min-h-screen bg-amber-50 flex justify-center items-center">
       <div className="w-full max-w-2xl bg-white flex rounded-lg shadow-lg">
         <div className="flex-1 p-2">
           <img
-            src={login}
+            src={loginImage}
             className="size-96 bg-amber-50 p-2 rounded-lg shadow-2xs h-full"
           />
         </div>
@@ -17,7 +58,7 @@ const Login = () => {
               Please login to your account
             </p>
           </div>
-          <div className="space-y-4">
+          <form className="space-y-4" onSubmit={formik.handleSubmit}>
             <div>
               <label
                 htmlFor="username"
@@ -29,8 +70,16 @@ const Login = () => {
                 type="text"
                 id="username"
                 name="username"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                autoComplete="off"
                 className="w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               />
+              {formik.touched.username && formik.errors.username ? (
+                <div className="text-red-500 text-sm mt-1">
+                  {formik.errors.username}
+                </div>
+              ) : null}
             </div>
             <div>
               <label
@@ -43,8 +92,16 @@ const Login = () => {
                 type="password"
                 id="password"
                 name="password"
+                autoComplete="off"
+                value={formik.values.password}
+                onChange={formik.handleChange}
                 className="w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               />
+              {formik.touched.password && formik.errors.password ? (
+                <div className="text-red-500 text-sm mt-1">
+                  {formik.errors.password}
+                </div>
+              ) : null}
             </div>
             <div>
               <label
@@ -56,6 +113,8 @@ const Login = () => {
               <select
                 id="factory"
                 name="factory"
+                value={formik.values.factory}
+                onChange={formik.handleChange}
                 className="w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               >
                 <option value="">Choose option</option>
@@ -64,14 +123,19 @@ const Login = () => {
                 <option value="LVL">LVL</option>
                 <option value="LYM">LYM</option>
               </select>
+              {formik.touched.factory && formik.errors.factory ? (
+                <div className="text-red-500 text-sm mt-1">
+                  {formik.errors.factory}
+                </div>
+              ) : null}
             </div>
             <button
-              type="button"
+              type="submit"
               className="w-full px-2 py-2 cursor-pointer font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
             >
               Login
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

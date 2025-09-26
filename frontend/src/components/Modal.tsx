@@ -3,7 +3,8 @@ import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { IFormModal } from '../types/modal';
-import { useAppSelector } from '../app/hooks';
+import { useAppDispatch } from '../app/hooks';
+import { stagelistUpload } from '../features/stagelist/stagelistSlice';
 
 type Props = {
   setIsOpen: (isOpen: boolean) => void;
@@ -30,13 +31,14 @@ const validationSchema = Yup.object({
 });
 
 const Modal = ({ setIsOpen }: Props) => {
-  const { value } = useAppSelector((state) => state.stagelist);
+  const dispatch = useAppDispatch();
 
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: (data) => {
-      console.log(data, value);
+      const { date, season, stage, area, article, files } = data;
+      dispatch(stagelistUpload({ date, season, stage, area, article, files }));
     },
   });
 

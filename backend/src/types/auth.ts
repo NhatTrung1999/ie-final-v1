@@ -12,19 +12,7 @@ export interface IAuth {
   UpdatedDate: string;
 }
 
-export interface IAuthResponse {
-  auth: IAuth;
-  accessToken: string;
-}
-
-export interface IAuthState {
-  auth: IAuth | null;
-  accessToken: string | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export interface ILoginPayload {
+export interface IAuthPayload {
   username: string;
   password: string;
   factory: string;
