@@ -1,8 +1,21 @@
 import { FaPlus, FaTrash } from 'react-icons/fa6';
 import { FaSyncAlt } from 'react-icons/fa';
-import { useRef, useState } from 'react';
-import { TAB_STAGE_LIST } from '../types/stagelist';
+import { useEffect, useRef, useState } from 'react';
+import { TAB_STAGE_LIST, type IStageList } from '../types/stagelist';
 import Modal from './Modal';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import {
+  setActiveItemId,
+  setActiveTabId,
+  setPath,
+  stagelistDelete,
+  stagelistList,
+} from '../features/stagelist/stagelistSlice';
+import type { ITableData } from '../types/tablect';
+import {
+  setActiveColId,
+  setCreateRowData,
+} from '../features/tablect/tablectSlice';
 
 const StageList = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -10,6 +23,15 @@ const StageList = () => {
   const startX = useRef<number>(0);
   const scrollLeftStart = useRef<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const { stagelist, activeTabId, activeItemId } = useAppSelector(
+    (state) => state.stagelist
+  );
+  const { tablect } = useAppSelector((state) => state.tablect);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(stagelistList());
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement | null>) => {
     isDragging.current = true;
@@ -44,6 +66,55 @@ const StageList = () => {
     }
   };
 
+  const handleDelete = (e: React.MouseEvent<HTMLDivElement>, id: string) => {
+    e.stopPropagation();
+    dispatch(stagelistDelete(id));
+    // console.log(id);
+  };
+
+  const handleCreateRowData = (item: IStageList) => {
+    const isDuplicate = tablect.some((row) => row.Id === item.Id);
+
+    if (isDuplicate) {
+      dispatch(setPath(item.Path));
+      return;
+    }
+
+    const newData: ITableData = {
+      Id: item.Id,
+      No: item.Name.split('. ')[0] || 'Unknown',
+      ProgressStagePartName:
+        item.Name.split('. ')[1].split('.')[0] || 'Unknown',
+      Area: item.Area,
+      Path: item.Path,
+      Nva: {
+        Type: 'NVA',
+        Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        Average: 0,
+      },
+      Va: {
+        Type: 'VA',
+        Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        Average: 0,
+      },
+      MachineType: '',
+      Confirm: '',
+    };
+
+    dispatch(setPath(item.Path));
+    dispatch(setCreateRowData(newData));
+  };
+
+  const handelClick = (item: IStageList) => {
+    if (item.Id === activeItemId) {
+      dispatch(setPath(''));
+      dispatch(setActiveColId(null));
+    } else {
+      handleCreateRowData(item);
+    }
+    dispatch(setActiveItemId(item.Id));
+  };
+
   return (
     <>
       <div className="border border-gray-500 overflow-auto row-span-2 flex flex-col">
@@ -73,7 +144,10 @@ const StageList = () => {
             {TAB_STAGE_LIST.map((item, i) => (
               <div
                 key={i}
-                className="bg-gray-900/50 px-2 py-1 rounded-lg font-bold text-white"
+                className={`px-2 py-1 rounded-lg font-bold ${
+                  activeTabId === item ? 'bg-gray-900/50 text-white' : ''
+                }`}
+                onClick={() => dispatch(setActiveTabId(item))}
               >
                 {item}
               </div>
@@ -81,14 +155,25 @@ const StageList = () => {
           </div>
         </div>
         <div className=" flex-1 overflow-y-auto flex flex-col gap-2 p-2">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="hover:bg-gray-300 text-gray-700 cursor-pointer px-2 py-1 rounded-md font-bold  flex items-center justify-between">
-              <div className="truncate">Item {i + 1}</div>
-              <div className="cursor-pointer p-2">
-                <FaTrash />
+          {stagelist
+            .filter((item) => item.Area === activeTabId)
+            .map((item, i) => (
+              <div
+                key={i}
+                className={`hover:bg-gray-300 text-gray-700 cursor-pointer px-2 py-1 rounded-md font-bold  flex items-center justify-between ${
+                  item.Id === activeItemId ? 'bg-gray-300' : ''
+                }`}
+                onClick={() => handelClick(item)}
+              >
+                <div className="truncate">{item.Name}</div>
+                <div
+                  className="cursor-pointer p-2"
+                  onClick={(e) => handleDelete(e, item.Id)}
+                >
+                  <FaTrash />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
       {isOpen && <Modal setIsOpen={setIsOpen} />}

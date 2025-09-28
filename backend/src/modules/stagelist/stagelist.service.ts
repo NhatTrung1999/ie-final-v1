@@ -6,10 +6,14 @@ import { Sequelize } from 'sequelize-typescript';
 import { QueryTypes } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import { IStageListData } from 'src/types/stagelist';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class StagelistService {
-  constructor(@Inject('IE') private readonly IE: Sequelize) {}
+  constructor(
+    @Inject('IE') private readonly IE: Sequelize,
+    private readonly configService: ConfigService,
+  ) {}
 
   async stagelistUpload(
     createStagelistDto: CreateStagelistDto,
@@ -89,7 +93,22 @@ export class StagelistService {
     return resData;
   }
 
-  async stagelistDelete(id: string): Promise<string> {
+  async stagelistList() {
+    let records: IStageListData[] = await this.IE.query(
+      `SELECT *
+        FROM IE_StageList
+        ORDER BY CreatedAt`,
+      { type: QueryTypes.SELECT },
+    );
+    records = records.map((item) => ({
+      ...item,
+      Path: `${this.configService.get('BASEPATH')}/uploads${item.Path.split('/uploads')[1]}`,
+    }));
+    // console.log(response);
+    return records;
+  }
+
+  async stagelistDelete(id: string): Promise<IStageListData[]> {
     const record: IStageListData[] = await this.IE.query(
       `SELECT * FROM IE_StageList WHERE Id = ?`,
       { replacements: [id], type: QueryTypes.SELECT },
@@ -112,6 +131,12 @@ export class StagelistService {
     if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) {
       fs.rmdirSync(dir, { recursive: true });
     }
-    return `Stagelist with Id ${id} deleted successfully`;
+
+    const records: IStageListData[] = await this.IE.query(
+      `SELECT * FROM IE_StageList`,
+      { replacements: [id], type: QueryTypes.SELECT },
+    );
+
+    return records;
   }
 }

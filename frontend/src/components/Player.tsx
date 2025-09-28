@@ -1,16 +1,35 @@
 import ReactPlayer from 'react-player';
-// import video from '../assets/C1. Mantra.mp4';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import {
+  setCurrentTime,
+  setDuration,
+} from '../features/controlpanel/controlpanelSlice';
+import { usePlayer } from '../hooks/usePlayer';
+import type { OnProgressProps } from 'react-player/base';
 
 const Player = () => {
+  const { path } = useAppSelector((state) => state.stagelist);
+  const dispatch = useAppDispatch();
+  const { isPlaying } = useAppSelector((state) => state.controlpanel);
+  const { playRef } = usePlayer();
+
   return (
     <div className=" h-[550px] w-full border border-gray-500 bg-black">
       <ReactPlayer
-        src={'https://youtu.be/YudHcBIxlYw?si=GEWAZqokMJoTS8l-'}
+        ref={playRef}
+        url={path}
+        muted
         controls
+        playing={isPlaying}
+        onDuration={(duration: number) => dispatch(setDuration(duration))}
+        onProgress={(state: OnProgressProps) => {
+          dispatch(setCurrentTime(Number(state.playedSeconds.toFixed(2))));
+        }}
+        width={'100%'}
+        height={'100%'}
+        progressInterval={100}
         style={{
           objectFit: 'contain',
-          width: '100%',
-          height: '100%',
         }}
       />
     </div>

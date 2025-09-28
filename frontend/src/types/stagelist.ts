@@ -6,8 +6,25 @@ export const TAB_STAGE_LIST: string[] = [
   'NOSEW',
 ];
 
+export interface IStageList {
+  Id: string;
+  Date: string;
+  Season: string;
+  Stage: string;
+  Area: string;
+  Article: string;
+  Name: string;
+  Path: string;
+  CreatedBy: string;
+  CreatedFactory: string;
+  CreatedAt: string;
+}
+
 export interface IStageListState {
-  stagelist: any[];
+  stagelist: IStageList[];
+  activeTabId: string;
+  activeItemId: string | null;
+  path: string | undefined;
   loading: boolean;
   error: string | null;
 }

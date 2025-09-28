@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import type { IFormModal } from '../types/modal';
 import { useAppDispatch } from '../app/hooks';
 import { stagelistUpload } from '../features/stagelist/stagelistSlice';
+import { useState } from 'react';
 
 type Props = {
   setIsOpen: (isOpen: boolean) => void;
@@ -31,23 +32,51 @@ const validationSchema = Yup.object({
 });
 
 const Modal = ({ setIsOpen }: Props) => {
+  const [progress, setProgress] = useState<number>(0);
+  const [controller, setController] = useState<AbortController | null>(null);
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (data) => {
-      const { date, season, stage, area, article, files } = data;
-      dispatch(stagelistUpload({ date, season, stage, area, article, files }));
+    onSubmit: async (data) => {
+      const abortController = new AbortController();
+      setController(abortController);
+
+      const result = await dispatch(
+        stagelistUpload({
+          payload: data,
+          onProgress: (p) => setProgress(p),
+          controller: abortController,
+        })
+      );
+      if (stagelistUpload.fulfilled.match(result)) {
+        setIsOpen(false);
+      }
     },
   });
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setProgress(0);
+    setController(null);
+  };
+
+  const handleCancelUpload = () => {
+    if (controller) {
+      controller.abort();
+      setIsOpen(false);
+      setProgress(0);
+      setController(null);
+    }
+  };
 
   return (
     <div className="fixed bg-transparent inset-0 flex justify-center items-center z-50">
       <div className="w-full max-w-sm bg-white flex rounded-md shadow-lg flex-col p-2">
         <div className="border-b border-gray-200 p-3 flex items-center justify-between text-gray-600">
           <h1 className="text-2xl font-bold">Upload Video</h1>
-          <div className="p-1 cursor-pointer" onClick={() => setIsOpen(false)}>
+          <div className="p-1 cursor-pointer" onClick={handleClose}>
             <IoClose size={24} />
           </div>
         </div>
@@ -159,6 +188,7 @@ const Modal = ({ setIsOpen }: Props) => {
               type="text"
               id="article"
               name="article"
+              autoComplete="off"
               value={formik.values.article}
               onChange={formik.handleChange}
               className="w-full px-2 py-1.5 uppercase border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
@@ -200,14 +230,19 @@ const Modal = ({ setIsOpen }: Props) => {
           <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="w-full px-2 py-2 cursor-pointer font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 focus:ring-2 focus:ring-blue-400"
+              disabled={progress > 0 ? true : false}
+              className={`w-full px-2 py-2 cursor-pointer font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 focus:ring-2 focus:ring-blue-400 ${
+                progress > 0
+                  ? 'hover:cursor-not-allowed'
+                  : 'hover:cursor-pointer'
+              }`}
             >
-              Upload
+              {progress > 0 ? `Uploading...${progress}%` : 'Upload'}
             </button>
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-full px-2 py-2 cursor-pointer font-medium text-white bg-red-600 rounded-lg hover:bg-red-500 focus:ring-2 focus:ring-blue-400"
+              onClick={handleCancelUpload}
+              className="w-full px-2 py-2 cursor-pointer font-medium hover:cursor-pointer text-white bg-red-600 rounded-lg hover:bg-red-500 focus:ring-2 focus:ring-blue-400"
             >
               Cancel
             </button>

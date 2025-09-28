@@ -1,12 +1,21 @@
-import { FaCircleCheck, FaPlay } from 'react-icons/fa6';
+import { FaCircleCheck, FaPause, FaPlay } from 'react-icons/fa6';
+import { useAppSelector } from '../app/hooks';
+import { useDispatch } from 'react-redux';
+import { setIsPlaying } from '../features/controlpanel/controlpanelSlice';
+import { formatDuration } from '../utils/formatDuration';
 
 const ControlPanel = () => {
+  const { activeColId } = useAppSelector((state) => state.tablect);
+  const { isPlaying, duration, currentTime } = useAppSelector(
+    (state) => state.controlpanel
+  );
+  const dispatch = useDispatch();
   const handleStartStop = () => {
-    console.log('StartStop');
+    dispatch(setIsPlaying(!isPlaying));
   };
 
   const handleDone = () => {
-    console.log('Done');
+    console.log('Done', activeColId);
   };
 
   const handleTypes = () => {
@@ -22,21 +31,52 @@ const ControlPanel = () => {
       </div>
       <div className="flex-1  grid grid-rows-3 gap-2 p-1">
         <div className=" grid grid-cols-3 gap-2">
-          <div className=" flex justify-center items-center text-xl font-semibold rounded-md bg-gray-500 text-white">
-            00:00
-          </div>
-          <button
-            className="flex justify-center items-center gap-1 bg-blue-500 text-white rounded-md cursor-pointer"
-            onClick={handleStartStop}
+          <div
+            className={`flex justify-center items-center text-xl font-semibold rounded-md bg-gray-500 text-white ${
+              activeColId === null ? 'opacity-80' : ''
+            }`}
           >
-            <div>
-              <FaPlay size={20} />
-            </div>
-            <div className="font-semibold">Start</div>
-          </button>
+            {formatDuration(currentTime)}
+          </div>
+          {isPlaying ? (
+            <button
+              className={`flex justify-center items-center gap-1 bg-red-500 text-white rounded-md  ${
+                activeColId === null
+                  ? 'cursor-not-allowed opacity-80'
+                  : 'cursor-pointer'
+              }`}
+              onClick={handleStartStop}
+              disabled={activeColId === null ? true : false}
+            >
+              <div>
+                <FaPause size={20} />
+              </div>
+              <div className="font-semibold">Stop</div>
+            </button>
+          ) : (
+            <button
+              className={`flex justify-center items-center gap-1 bg-blue-500 text-white rounded-md  ${
+                activeColId === null
+                  ? 'cursor-not-allowed opacity-80'
+                  : 'cursor-pointer'
+              }`}
+              onClick={handleStartStop}
+              disabled={activeColId === null ? true : false}
+            >
+              <div>
+                <FaPlay size={20} />
+              </div>
+              <div className="font-semibold">Start</div>
+            </button>
+          )}
           <button
-            className="flex justify-center items-center gap-1 bg-green-500 text-white rounded-md cursor-pointer"
+            className={`flex justify-center items-center gap-1 bg-green-500 text-white rounded-md ${
+              activeColId === null
+                ? 'cursor-not-allowed opacity-80'
+                : 'cursor-pointer'
+            }`}
             onClick={handleDone}
+            disabled={activeColId === null ? true : false}
           >
             <div>
               <FaCircleCheck size={18} />
@@ -46,7 +86,12 @@ const ControlPanel = () => {
         </div>
         <div className=" grid grid-cols-3 gap-2">
           <button
-            className="flex justify-center items-center bg-gray-500 text-white rounded-md cursor-pointer p-1"
+            className={`flex justify-center items-center bg-gray-500 text-white rounded-md p-1 ${
+              activeColId === null
+                ? 'cursor-not-allowed opacity-80'
+                : 'cursor-pointer'
+            }`}
+            disabled={activeColId === null ? true : false}
             onClick={handleTypes}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
@@ -57,7 +102,12 @@ const ControlPanel = () => {
             </div>
           </button>
           <button
-            className="flex justify-center items-center bg-gray-500 text-white rounded-md cursor-pointer p-1"
+            className={`flex justify-center items-center bg-gray-500 text-white rounded-md p-1 ${
+              activeColId === null
+                ? 'cursor-not-allowed opacity-80'
+                : 'cursor-pointer'
+            }`}
+            disabled={activeColId === null ? true : false}
             onClick={handleTypes}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
@@ -68,7 +118,12 @@ const ControlPanel = () => {
             </div>
           </button>
           <button
-            className="flex justify-center items-center bg-gray-500 text-white rounded-md cursor-pointer p-1"
+            className={`flex justify-center items-center bg-gray-500 text-white rounded-md p-1 ${
+              activeColId === null
+                ? 'cursor-not-allowed opacity-80'
+                : 'cursor-pointer'
+            }`}
+            disabled={activeColId === null ? true : false}
             onClick={handleTypes}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
@@ -79,12 +134,26 @@ const ControlPanel = () => {
             </div>
           </button>
         </div>
-        <div className=" grid grid-cols-6 bg-gray-500 text-white font-semibold rounded-lg">
-          <div className=" flex justify-center items-center">00:00</div>
-          <div className=" col-span-4 flex justify-center items-center">
-            <input type="range" className="w-full accent-amber-200" />
+        <div
+          className={`grid grid-cols-6 bg-gray-500 text-white font-semibold rounded-lg ${
+            activeColId === null
+              ? 'cursor-not-allowed opacity-70'
+              : 'cursor-pointer'
+          }`}
+        >
+          <div className=" flex justify-center items-center">
+            {formatDuration(currentTime)}
           </div>
-          <div className=" flex justify-center items-center">00:00</div>
+          <div className=" col-span-4 flex justify-center items-center">
+            <input
+              type="range"
+              className="w-full accent-amber-200"
+              disabled={activeColId === null ? true : false}
+            />
+          </div>
+          <div className=" flex justify-center items-center">
+            {formatDuration(duration)}
+          </div>
         </div>
       </div>
     </div>

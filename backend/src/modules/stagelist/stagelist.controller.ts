@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Req,
@@ -23,6 +24,11 @@ export class StagelistController {
     @Body() body: CreateStagelistDto,
   ) {
     return await this.stagelistService.stagelistUpload(body, files);
+  }
+
+  @Get('stagelist-list')
+  async stagelistList() {
+    return await this.stagelistService.stagelistList();
   }
 
   @Delete('stagelist-delete/:id')
