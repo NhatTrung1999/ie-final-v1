@@ -108,11 +108,11 @@ const StageList = () => {
   const handelClick = (item: IStageList) => {
     if (item.Id === activeItemId) {
       dispatch(setPath(''));
-      dispatch(setActiveColId(null));
     } else {
       handleCreateRowData(item);
     }
     dispatch(setActiveItemId(item.Id));
+    dispatch(setActiveColId(null));
   };
 
   return (

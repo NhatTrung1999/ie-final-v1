@@ -23,6 +23,7 @@ const Player = () => {
         playing={isPlaying}
         onDuration={(duration: number) => dispatch(setDuration(duration))}
         onProgress={(state: OnProgressProps) => {
+          // console.log(Number(state.playedSeconds.toFixed(2)));
           dispatch(setCurrentTime(Number(state.playedSeconds.toFixed(2))));
         }}
         width={'100%'}

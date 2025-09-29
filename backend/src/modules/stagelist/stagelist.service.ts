@@ -20,7 +20,7 @@ export class StagelistService {
     files: Array<Express.Multer.File>,
   ) {
     const { date, season, stage, area, article } = createStagelistDto;
-    const resData: IStageListData[] = [];
+    let resData: IStageListData[] = [];
 
     const basePath = path.join(
       process.cwd(),
@@ -90,6 +90,15 @@ export class StagelistService {
       resData.push(result[0]);
     }
 
+    resData = resData.map((item) => {
+      const normalizedPath = item.Path.replace(/\\/g, '/');
+      const relativePath = normalizedPath.split('/uploads')[1];
+      return {
+        ...item,
+        Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
+      };
+    });
+
     return resData;
   }
 
@@ -100,10 +109,14 @@ export class StagelistService {
         ORDER BY CreatedAt`,
       { type: QueryTypes.SELECT },
     );
-    records = records.map((item) => ({
-      ...item,
-      Path: `${this.configService.get('BASEPATH')}/uploads${item.Path.split('/uploads')[1]}`,
-    }));
+    records = records.map((item) => {
+      const normalizedPath = item.Path.replace(/\\/g, '/');
+      const relativePath = normalizedPath.split('/uploads')[1];
+      return {
+        ...item,
+        Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
+      };
+    });
     // console.log(response);
     return records;
   }

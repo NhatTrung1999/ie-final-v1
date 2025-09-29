@@ -14,6 +14,10 @@ const ControlPanel = () => {
     dispatch(setIsPlaying(!isPlaying));
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+
   const handleDone = () => {
     console.log('Done', activeColId);
   };
@@ -23,8 +27,8 @@ const ControlPanel = () => {
   };
 
   return (
-    <div className="border border-gray-500 flex flex-col">
-      <div className="bg-gray-500 text-white">
+    <div className="border border-gray-500 flex flex-col overflow-y-auto">
+      <div className="bg-gray-500 text-white sticky top-0 z-20">
         <div className="px-2 py-2">
           <div className="font-bold">Control Panel</div>
         </div>
@@ -149,6 +153,10 @@ const ControlPanel = () => {
               type="range"
               className="w-full accent-amber-200"
               disabled={activeColId === null ? true : false}
+              value={currentTime}
+              step={0.1}
+              max={duration}
+              onChange={handleChange}
             />
           </div>
           <div className=" flex justify-center items-center">
