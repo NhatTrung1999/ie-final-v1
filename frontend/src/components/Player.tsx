@@ -23,12 +23,16 @@ const Player = () => {
         playing={isPlaying}
         onDuration={(duration: number) => dispatch(setDuration(duration))}
         onProgress={(state: OnProgressProps) => {
-          // console.log(Number(state.playedSeconds.toFixed(2)));
           dispatch(setCurrentTime(Number(state.playedSeconds.toFixed(2))));
         }}
+        progressInterval={1}
+        onPause={() =>
+          dispatch(
+            setCurrentTime(Number(playRef.current?.getCurrentTime().toFixed(2)))
+          )
+        }
         width={'100%'}
         height={'100%'}
-        progressInterval={100}
         style={{
           objectFit: 'contain',
         }}

@@ -22,9 +22,27 @@ const tablectSlice = createSlice({
         state.activeColId = action.payload;
       }
     },
+    setUpdateValueRow: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        colId: number;
+        nvaTime: number;
+        vaTime: number;
+      }>
+    ) => {
+      const { id, colId, nvaTime, vaTime } = action.payload;
+      state.tablect.map((item) => {
+        if (item.Id === id) {
+          item.Nva.Cts[colId] += Number(nvaTime.toFixed(2));
+          item.Va.Cts[colId] += Number(vaTime.toFixed(2));
+        }
+      });
+    },
   },
 });
 
-export const { setCreateRowData, setActiveColId } = tablectSlice.actions;
+export const { setCreateRowData, setActiveColId, setUpdateValueRow } =
+  tablectSlice.actions;
 
 export default tablectSlice.reducer;

@@ -124,16 +124,14 @@ const TableCT = () => {
                   {item.Nva.Cts.map((ct, i) => (
                     <td
                       className={`text-center border border-t-0 border-gray-400 ${
-                        `${item.Id}-${i + 1}` === activeColId
-                          ? 'bg-amber-200'
-                          : ''
+                        `${item.Id}_${i}` === activeColId ? 'bg-amber-200' : ''
                       }`}
                       key={i}
                       onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}-${i + 1}`, item.Id)
+                        handleClickColumn(e, `${item.Id}_${i}`, item.Id)
                       }
                     >
-                      {ct}
+                      {Number(ct.toFixed(2))}
                     </td>
                   ))}
                   <td className="text-center border border-t-0 border-gray-400">
@@ -165,7 +163,7 @@ const TableCT = () => {
                     rowSpan={2}
                   >
                     <div className="bg-green-500 px-2 py-1 text-white font-medium rounded-md">
-                      Save
+                      Done
                     </div>
                   </td>
                 </tr>
@@ -181,16 +179,14 @@ const TableCT = () => {
                   {item.Va.Cts.map((ct, i) => (
                     <td
                       className={`text-center border border-t-0 border-gray-400 ${
-                        `${item.Id}-${i + 1}` === activeColId
-                          ? 'bg-amber-200'
-                          : ''
+                        `${item.Id}_${i}` === activeColId ? 'bg-amber-200' : ''
                       }`}
                       key={i}
                       onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}-${i + 1}`, item.Id)
+                        handleClickColumn(e, `${item.Id}_${i}`, item.Id)
                       }
                     >
-                      {ct}
+                      {Number(ct.toFixed(2))}
                     </td>
                   ))}
                   <td className="text-center border border-t-0 border-gray-400">

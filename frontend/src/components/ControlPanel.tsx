@@ -1,29 +1,71 @@
 import { FaCircleCheck, FaPause, FaPlay } from 'react-icons/fa6';
 import { useAppSelector } from '../app/hooks';
 import { useDispatch } from 'react-redux';
-import { setIsPlaying } from '../features/controlpanel/controlpanelSlice';
+import {
+  resetTypes,
+  setIsPlaying,
+  setStartTime,
+  setStopTime,
+  setTypes,
+} from '../features/controlpanel/controlpanelSlice';
 import { formatDuration } from '../utils/formatDuration';
+import { usePlayer } from '../hooks/usePlayer';
+import { toast } from 'react-toastify';
+import { setUpdateValueRow } from '../features/tablect/tablectSlice';
 
 const ControlPanel = () => {
+  const { playRef } = usePlayer();
   const { activeColId } = useAppSelector((state) => state.tablect);
-  const { isPlaying, duration, currentTime } = useAppSelector(
-    (state) => state.controlpanel
-  );
+  const { activeItemId } = useAppSelector((state) => state.stagelist);
+  const { isPlaying, duration, currentTime, startTime, stopTime, types } =
+    useAppSelector((state) => state.controlpanel);
   const dispatch = useDispatch();
   const handleStartStop = () => {
     dispatch(setIsPlaying(!isPlaying));
+    if (!isPlaying) {
+      dispatch(setStartTime(currentTime));
+      // if (playRef.current) {
+      //   playRef.current.seekTo(currentTime, 'seconds');
+      //   playRef.current.getInternalPlayer().play();
+      // }
+    } else {
+      dispatch(setStopTime(currentTime));
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
+    const newValue = Number(e.target.value);
+    if (playRef.current) {
+      playRef.current.seekTo(newValue, 'seconds');
+    }
   };
 
   const handleDone = () => {
-    console.log('Done', activeColId);
+    if (activeColId && activeItemId) {
+      if (isPlaying) {
+        toast.warn('Cannot done while the video is playing!');
+        return;
+      }
+      const [id, colId] = activeColId?.split('_').map(String);
+      dispatch(
+        setUpdateValueRow({
+          id,
+          colId: Number(colId),
+          nvaTime: types.NVA,
+          vaTime: types.VA,
+        })
+      );
+      dispatch(resetTypes());
+    }
   };
 
-  const handleTypes = () => {
-    console.log('Types');
+  const handleTypes = (type: string) => {
+    if (isPlaying) {
+      toast.warn('Cannot select status while the video is playing!');
+      return;
+    }
+    const valueType = stopTime - startTime;
+    dispatch(setTypes({ type, valueTime: Number(valueType.toFixed(2)) }));
   };
 
   return (
@@ -96,13 +138,13 @@ const ControlPanel = () => {
                 : 'cursor-pointer'
             }`}
             disabled={activeColId === null ? true : false}
-            onClick={handleTypes}
+            onClick={() => handleTypes('NVA')}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
               NVA
             </div>
             <div className="font-semibold flex-1 h-full flex justify-center items-center bg-white text-gray-500 rounded-md text-lg">
-              0.0
+              {types.NVA.toFixed(2)}
             </div>
           </button>
           <button
@@ -112,13 +154,13 @@ const ControlPanel = () => {
                 : 'cursor-pointer'
             }`}
             disabled={activeColId === null ? true : false}
-            onClick={handleTypes}
+            onClick={() => handleTypes('VA')}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
               VA
             </div>
             <div className="font-semibold flex-1 h-full flex justify-center items-center bg-white text-gray-500 rounded-md text-lg">
-              0.0
+              {types.VA.toFixed(2)}
             </div>
           </button>
           <button
@@ -128,13 +170,13 @@ const ControlPanel = () => {
                 : 'cursor-pointer'
             }`}
             disabled={activeColId === null ? true : false}
-            onClick={handleTypes}
+            onClick={() => handleTypes('SKIP')}
           >
             <div className="font-semibold flex-1 h-full flex justify-center items-center">
               SKIP
             </div>
             <div className="font-semibold flex-1 h-full flex justify-center items-center bg-white text-gray-500 rounded-md text-lg">
-              0.0
+              {types.SKIP.toFixed(2)}
             </div>
           </button>
         </div>
