@@ -2,7 +2,10 @@ import React, { Fragment, type MouseEvent } from 'react';
 import { TABLE_HEADER, type ITableData } from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
-import { setActiveColId } from '../features/tablect/tablectSlice';
+import {
+  setActiveColId,
+  setUpdateAverage,
+} from '../features/tablect/tablectSlice';
 
 const TableCT = () => {
   const { tablect, activeColId } = useAppSelector((state) => state.tablect);
@@ -37,7 +40,10 @@ const TableCT = () => {
     item: ITableData
   ) => {
     e.stopPropagation();
-    console.log('Done', item);
+    // console.log('Done', item);
+    const avgNva = item.Nva.Cts.reduce((prev, curr) => prev + curr, 0);
+    const avgVa = item.Va.Cts.reduce((prev, curr) => prev + curr, 0);
+    dispatch(setUpdateAverage({ id: item.Id, avgNva, avgVa }));
   };
 
   const handleSync = () => {
@@ -52,6 +58,38 @@ const TableCT = () => {
   const handleExcelTimeStudy = () => {
     console.log('Excel Time Study');
   };
+
+  const handleSave = (
+    e: React.MouseEvent<HTMLDivElement>,
+    item: ITableData
+  ) => {
+    e.stopPropagation();
+    console.log(item);
+  };
+
+  const handleCheckAction = (item: ITableData) => {
+    const avgNva = item.Nva.Average;
+    const avgVa = item.Va.Average;
+    if (avgNva > 0 && avgVa > 0) {
+      return (
+        <div
+          className="bg-blue-500 px-2 py-1 text-white font-medium rounded-md"
+          onClick={(e) => handleSave(e, item)}
+        >
+          Save
+        </div>
+      );
+    }
+    return (
+      <div
+        className="bg-green-500 px-2 py-1 text-white font-medium rounded-md"
+        onClick={(e) => handleDone(e, item)}
+      >
+        Done
+      </div>
+    );
+  };
+
   return (
     <div className="mt-2 border border-gray-500">
       <div className="bg-gray-500 text-white">
@@ -170,12 +208,7 @@ const TableCT = () => {
                     className="text-center border border-r-0 border-t-0 border-gray-400 p-2"
                     rowSpan={2}
                   >
-                    <div
-                      className="bg-green-500 px-2 py-1 text-white font-medium rounded-md"
-                      onClick={(e) => handleDone(e, item)}
-                    >
-                      Done
-                    </div>
+                    {handleCheckAction(item)}
                   </td>
                 </tr>
                 <tr

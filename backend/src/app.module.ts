@@ -7,13 +7,15 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import { StagelistModule } from './modules/stagelist/stagelist.module';
+import { TablectModule } from './modules/tablect/tablect.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AuthModule,
-    StagelistModule
+    StagelistModule,
+    TablectModule,
   ],
   controllers: [AppController],
   providers: [

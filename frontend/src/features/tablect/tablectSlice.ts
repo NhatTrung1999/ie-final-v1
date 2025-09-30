@@ -39,10 +39,26 @@ const tablectSlice = createSlice({
         }
       });
     },
+    setUpdateAverage: (
+      state,
+      action: PayloadAction<{ id: string; avgNva: number; avgVa: number }>
+    ) => {
+      const { id, avgNva, avgVa } = action.payload;
+      state.tablect.map((item) => {
+        if (item.Id === id) {
+          item.Nva.Average = avgNva;
+          item.Va.Average = avgVa;
+        }
+      });
+    },
   },
 });
 
-export const { setCreateRowData, setActiveColId, setUpdateValueRow } =
-  tablectSlice.actions;
+export const {
+  setCreateRowData,
+  setActiveColId,
+  setUpdateValueRow,
+  setUpdateAverage,
+} = tablectSlice.actions;
 
 export default tablectSlice.reducer;
