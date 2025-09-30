@@ -24,10 +24,6 @@ const ControlPanel = () => {
     dispatch(setIsPlaying(!isPlaying));
     if (!isPlaying) {
       dispatch(setStartTime(currentTime));
-      // if (playRef.current) {
-      //   playRef.current.seekTo(currentTime, 'seconds');
-      //   playRef.current.getInternalPlayer().play();
-      // }
     } else {
       dispatch(setStopTime(currentTime));
     }

@@ -1,4 +1,4 @@
-import { Fragment, type MouseEvent } from 'react';
+import React, { Fragment, type MouseEvent } from 'react';
 import { TABLE_HEADER, type ITableData } from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
@@ -30,6 +30,14 @@ const TableCT = () => {
     if (!activeItemId) return;
     if (rowId !== activeItemId) return;
     dispatch(setActiveColId(colId));
+  };
+
+  const handleDone = (
+    e: React.MouseEvent<HTMLDivElement>,
+    item: ITableData
+  ) => {
+    e.stopPropagation();
+    console.log('Done', item);
   };
 
   const handleSync = () => {
@@ -162,7 +170,10 @@ const TableCT = () => {
                     className="text-center border border-r-0 border-t-0 border-gray-400 p-2"
                     rowSpan={2}
                   >
-                    <div className="bg-green-500 px-2 py-1 text-white font-medium rounded-md">
+                    <div
+                      className="bg-green-500 px-2 py-1 text-white font-medium rounded-md"
+                      onClick={(e) => handleDone(e, item)}
+                    >
                       Done
                     </div>
                   </td>
