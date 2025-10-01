@@ -1,4 +1,4 @@
-export class CreateHistoryplaybackDto {
+export interface IHistoryplaybackPayload {
   HistoryPlaybackId: string;
   Type: string;
   Start: string;

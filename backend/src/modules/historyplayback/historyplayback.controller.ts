@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { HistoryplaybackService } from './historyplayback.service';
 import { CreateHistoryplaybackDto } from './dto/create-historyplayback.dto';
 
@@ -18,8 +26,14 @@ export class HistoryplaybackController {
     return this.historyplaybackService.historyplaybackCreate(body);
   }
 
-  @Delete('historyplayback-delete/:id')
-  async historyplaybackDelete(@Param('id') id: string) {
-    return this.historyplaybackService.historyplaybackDelete(id);
+  @Delete('historyplayback-delete')
+  async historyplaybackDelete(
+    @Query('Id') Id: string,
+    @Query('HistoryPlaybackId') HistoryPlaybackId: string,
+  ) {
+    return this.historyplaybackService.historyplaybackDelete(
+      Id,
+      HistoryPlaybackId,
+    );
   }
 }
