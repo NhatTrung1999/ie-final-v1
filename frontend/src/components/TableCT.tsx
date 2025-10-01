@@ -27,11 +27,18 @@ const TableCT = () => {
   const handleClickColumn = (
     e: MouseEvent<HTMLDivElement>,
     colId: string,
-    rowId: string
+    rowId: string,
+    item: ITableData
   ) => {
     e.stopPropagation();
+    const { Nva, Va } = item;
+    const avgNva = Nva.Average;
+    const avgVa = Va.Average;
+    // console.log(avgNva, avgVa);
     if (!activeItemId) return;
     if (rowId !== activeItemId) return;
+    if (avgNva && avgVa) return;
+
     dispatch(setActiveColId(colId));
   };
 
@@ -41,9 +48,20 @@ const TableCT = () => {
   ) => {
     e.stopPropagation();
     // console.log('Done', item);
-    const avgNva = item.Nva.Cts.reduce((prev, curr) => prev + curr, 0);
-    const avgVa = item.Va.Cts.reduce((prev, curr) => prev + curr, 0);
-    dispatch(setUpdateAverage({ id: item.Id, avgNva, avgVa }));
+    const totalNva = item.Nva.Cts.filter((item) => item > 0);
+    const totalVa = item.Va.Cts.filter((item) => item > 0);
+    const avgNva =
+      item.Nva.Cts.reduce((prev, curr) => prev + curr, 0) / totalNva.length;
+    const avgVa =
+      item.Va.Cts.reduce((prev, curr) => prev + curr, 0) / totalVa.length;
+    dispatch(
+      setUpdateAverage({
+        id: item.Id,
+        avgNva: Number(avgNva.toFixed(2)),
+        avgVa: Number(avgVa.toFixed(2)),
+      })
+    );
+    dispatch(setActiveColId(null));
   };
 
   const handleSync = () => {
@@ -174,7 +192,7 @@ const TableCT = () => {
                       }`}
                       key={i}
                       onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}_${i}`, item.Id)
+                        handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
                       }
                     >
                       {Number(ct.toFixed(2))}
@@ -227,7 +245,7 @@ const TableCT = () => {
                       }`}
                       key={i}
                       onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}_${i}`, item.Id)
+                        handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
                       }
                     >
                       {Number(ct.toFixed(2))}

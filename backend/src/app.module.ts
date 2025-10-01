@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import { StagelistModule } from './modules/stagelist/stagelist.module';
 import { TablectModule } from './modules/tablect/tablect.module';
+import { HistoryplaybackModule } from './modules/historyplayback/historyplayback.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TablectModule } from './modules/tablect/tablect.module';
     AuthModule,
     StagelistModule,
     TablectModule,
+    HistoryplaybackModule
   ],
   controllers: [AppController],
   providers: [
