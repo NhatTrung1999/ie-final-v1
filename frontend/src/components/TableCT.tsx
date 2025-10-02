@@ -3,6 +3,7 @@ import { TABLE_HEADER, type ITableData } from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
 import {
+  saveData,
   setActiveColId,
   setUpdateAverage,
 } from '../features/tablect/tablectSlice';
@@ -82,7 +83,20 @@ const TableCT = () => {
     item: ITableData
   ) => {
     e.stopPropagation();
-    console.log(item);
+    dispatch(
+      saveData({
+        TablectId: item.Id,
+        No: item.No,
+        ProgressStagePartName: item.ProgressStagePartName,
+        Area: item.Area,
+        Path: item.Path,
+        Nva: JSON.stringify(item.Nva),
+        Va: JSON.stringify(item.Va),
+        MachineType: item.MachineType,
+        ConfirmId: '12345',
+        CreatedBy: 'admin',
+      })
+    );
   };
 
   const handleCheckAction = (item: ITableData) => {
@@ -220,7 +234,7 @@ const TableCT = () => {
                     className="text-center border border-t-0 border-gray-400"
                     rowSpan={2}
                   >
-                    {item.Confirm}
+                    {item.ConfirmId}
                   </td>
                   <td
                     className="text-center border border-r-0 border-t-0 border-gray-400 p-2"

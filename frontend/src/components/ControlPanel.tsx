@@ -12,6 +12,8 @@ import { formatDuration } from '../utils/formatDuration';
 import { usePlayer } from '../hooks/usePlayer';
 import { toast } from 'react-toastify';
 import { setUpdateValueRow } from '../features/tablect/tablectSlice';
+import { setHistoryplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
+import { v4 as uuidv4 } from 'uuid';
 
 const ControlPanel = () => {
   const { playRef } = usePlayer();
@@ -62,6 +64,18 @@ const ControlPanel = () => {
     }
     const valueType = stopTime - startTime;
     dispatch(setTypes({ type, valueTime: Number(valueType.toFixed(2)) }));
+    dispatch(
+      setHistoryplaybackCreate({
+        Id: uuidv4(),
+        HistoryPlaybackId: activeItemId as string,
+        Type: type,
+        Start: String(startTime),
+        Stop: String(stopTime),
+        CreatedBy: 'admin',
+        CreatedFactory: 'LYV',
+        CreatedAt: '2025-10-02',
+      })
+    );
   };
 
   return (

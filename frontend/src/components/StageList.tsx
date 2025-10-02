@@ -16,6 +16,7 @@ import {
   setActiveColId,
   setCreateRowData,
 } from '../features/tablect/tablectSlice';
+import { v4 as uuidv4 } from 'uuid';
 
 const StageList = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +82,8 @@ const StageList = () => {
     }
 
     const newData: ITableData = {
-      Id: item.Id,
+      Id: uuidv4(),
+      TablectId: item.Id,
       No: item.Name.split('. ')[0] || 'Unknown',
       ProgressStagePartName:
         item.Name.split('. ')[1].split('.')[0] || 'Unknown',
@@ -98,7 +100,9 @@ const StageList = () => {
         Average: 0,
       },
       MachineType: '',
-      Confirm: '',
+      ConfirmId: '',
+      CreatedBy: 'admin',
+      CreatedAt: '',
     };
 
     dispatch(setPath(item.Path));

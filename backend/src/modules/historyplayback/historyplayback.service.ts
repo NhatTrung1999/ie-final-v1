@@ -47,7 +47,7 @@ export class HistoryplaybackService {
       { replacements: [Id], type: QueryTypes.SELECT },
     );
 
-    return records;
+    return records[0];
   }
 
   async historyplaybackDelete(Id: string, HistoryPlaybackId: string) {

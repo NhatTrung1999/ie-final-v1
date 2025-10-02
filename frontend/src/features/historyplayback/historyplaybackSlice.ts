@@ -22,7 +22,7 @@ export const historyplaybackCreate = createAsyncThunk(
   'historyplayback/historyplayback-create',
   async (payload: IHistoryplaybackPayload) => {
     const res = await historyplaybackApi.historyplaybackCreate(payload);
-    return res;
+    return res as IHistoryplaybackData;
   }
 );
 
@@ -43,8 +43,22 @@ const initialState: IHistoryplaybackState = {
 const historyplaybackSlice = createSlice({
   name: 'historyplayback',
   initialState,
-  reducers: {},
+  reducers: {
+    setHistoryplaybackCreate: (
+      state,
+      action: PayloadAction<IHistoryplaybackData>
+    ) => {
+      state.historyplayback.push(action.payload);
+    },
+    setHistoryplaybackDelete: (state, action: PayloadAction<string>) => {
+      // console.log(action.payload);
+      state.historyplayback = state.historyplayback.filter(
+        (item) => item.Id !== action.payload
+      );
+    },
+  },
   extraReducers: (builder) => {
+    //get list
     builder
       .addCase(historyplaybackList.pending, (state) => {
         state.loading = true;
@@ -63,5 +77,8 @@ const historyplaybackSlice = createSlice({
       });
   },
 });
+
+export const { setHistoryplaybackCreate, setHistoryplaybackDelete } =
+  historyplaybackSlice.actions;
 
 export default historyplaybackSlice.reducer;

@@ -1,4 +1,5 @@
-export class CreateTablectDto {
+export interface ITablectData {
+  Id: string;
   TablectId: string;
   No: string;
   ProgressStagePartName: string;
@@ -9,4 +10,5 @@ export class CreateTablectDto {
   MachineType: string;
   ConfirmId: string;
   CreatedBy: string;
+  CreatedAt: string;
 }

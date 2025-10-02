@@ -9,8 +9,37 @@ export interface ITableHeader {
   Action: string;
 }
 
+export interface ITableCtPayload {
+  TablectId: string;
+  No: string;
+  ProgressStagePartName: string;
+  Area: string;
+  Path: string;
+  Nva: string;
+  Va: string;
+  MachineType: string;
+  ConfirmId: string;
+  CreatedBy: string;
+}
+
+export interface ITableCtResponse {
+  Id: string;
+  TablectId: string;
+  No: string;
+  ProgressStagePartName: string;
+  Area: string;
+  Path: string;
+  Nva: string;
+  Va: string;
+  MachineType: string;
+  ConfirmId: string;
+  CreatedBy: string;
+  CreatedAt: string;
+}
+
 export interface ITableData {
   Id: string;
+  TablectId: string;
   No: string;
   ProgressStagePartName: string;
   Area: string;
@@ -26,7 +55,9 @@ export interface ITableData {
     Average: number;
   };
   MachineType: string;
-  Confirm: string;
+  ConfirmId: string;
+  CreatedBy: string;
+  CreatedAt: string;
 }
 
 export const TABLE_HEADER: ITableHeader[] = [
@@ -49,24 +80,24 @@ export interface ITableCtState {
   error: string | null;
 }
 
-export const TABLE_DATA: ITableData[] = [
-  {
-    Id: '1',
-    No: 'C1',
-    ProgressStagePartName: 'Test',
-    Area: 'CUTTING',
-    Path: '/path.json',
-    Nva: {
-      Type: 'NVA',
-      Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      Average: 0,
-    },
-    Va: {
-      Type: 'VA',
-      Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      Average: 0,
-    },
-    MachineType: '',
-    Confirm: '26324',
-  },
-];
+// export const TABLE_DATA: ITableData[] = [
+//   {
+//     Id: '1',
+//     No: 'C1',
+//     ProgressStagePartName: 'Test',
+//     Area: 'CUTTING',
+//     Path: '/path.json',
+//     Nva: {
+//       Type: 'NVA',
+//       Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+//       Average: 0,
+//     },
+//     Va: {
+//       Type: 'VA',
+//       Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+//       Average: 0,
+//     },
+//     MachineType: '',
+//     ConfirmId: '26324',
+//   },
+// ];

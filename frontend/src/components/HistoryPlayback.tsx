@@ -1,16 +1,32 @@
 import { useEffect } from 'react';
 import { FaTrash } from 'react-icons/fa6';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { historyplaybackList } from '../features/historyplayback/historyplaybackSlice';
+import {
+  historyplaybackList,
+  setHistoryplaybackDelete,
+} from '../features/historyplayback/historyplaybackSlice';
 import { formatDuration } from '../utils/formatDuration';
+import { usePlayer } from '../hooks/usePlayer';
 
 const HistoryPlayback = () => {
+  const { playRef } = usePlayer();
   const { historyplayback } = useAppSelector((state) => state.historyplayback);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch(historyplaybackList());
   }, []);
+
+  const handleSeek = (startTime: string) => {
+    if (playRef.current) {
+      playRef.current.seekTo(+startTime, 'seconds');
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent<HTMLDivElement>, Id: string) => {
+    e.stopPropagation();
+    dispatch(setHistoryplaybackDelete(Id));
+  };
 
   return (
     <div className="border border-gray-500 flex flex-col">
@@ -24,6 +40,7 @@ const HistoryPlayback = () => {
           <div
             key={i}
             className="bg-amber-500  rounded-md font-bold flex items-center justify-between p-1 cursor-pointer"
+            onClick={() => handleSeek(item.Start)}
           >
             <div className="bg-gray-500 px-3 py-1 text-lg text-white rounded-md">
               {formatDuration(+item.Start)}
@@ -35,7 +52,10 @@ const HistoryPlayback = () => {
             <div className="bg-gray-500 px-3 py-1 text-lg text-white rounded-md">
               {item.Type}: {(+item.Stop - +item.Start).toFixed(2)}
             </div>
-            <div className="bg-gray-500 px-3 py-1.5 text-lg text-white rounded-md ">
+            <div
+              className="bg-gray-500 px-3 py-1.5 text-lg text-white rounded-md"
+              onClick={(e) => handleDelete(e, item.Id)}
+            >
               <FaTrash size={24} />
             </div>
           </div>
