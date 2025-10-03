@@ -20,7 +20,7 @@ export const historyplaybackList = createAsyncThunk(
 
 export const historyplaybackCreate = createAsyncThunk(
   'historyplayback/historyplayback-create',
-  async (payload: IHistoryplaybackPayload) => {
+  async (payload: IHistoryplaybackPayload[]) => {
     const res = await historyplaybackApi.historyplaybackCreate(payload);
     return res as IHistoryplaybackData;
   }

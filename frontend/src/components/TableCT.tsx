@@ -1,4 +1,5 @@
 import React, { Fragment, type MouseEvent } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { TABLE_HEADER, type ITableData } from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
@@ -7,10 +8,12 @@ import {
   setActiveColId,
   setUpdateAverage,
 } from '../features/tablect/tablectSlice';
+import { historyplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
 
 const TableCT = () => {
   const { tablect, activeColId } = useAppSelector((state) => state.tablect);
   const { activeItemId } = useAppSelector((state) => state.stagelist);
+  const { historyplayback } = useAppSelector((state) => state.historyplayback);
   const dispatch = useAppDispatch();
 
   const handleClickRow = (item: ITableData) => {
@@ -85,6 +88,7 @@ const TableCT = () => {
     e.stopPropagation();
     dispatch(
       saveData({
+        Id: uuidv4(),
         TablectId: item.Id,
         No: item.No,
         ProgressStagePartName: item.ProgressStagePartName,
@@ -93,10 +97,12 @@ const TableCT = () => {
         Nva: JSON.stringify(item.Nva),
         Va: JSON.stringify(item.Va),
         MachineType: item.MachineType,
-        ConfirmId: '12345',
+        // ConfirmId: '12345',
         CreatedBy: 'admin',
       })
     );
+
+    dispatch(historyplaybackCreate(historyplayback));
   };
 
   const handleCheckAction = (item: ITableData) => {

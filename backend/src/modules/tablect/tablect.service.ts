@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
 import { CreateTablectDto } from './dto/create-tablect.dto';
 import { QueryTypes } from 'sequelize';
-import { v4 as uuidv4 } from 'uuid';
 import { ITablectData } from 'src/types/tablect';
 
 @Injectable()
@@ -10,8 +9,9 @@ export class TablectService {
   constructor(@Inject('IE') private readonly IE: Sequelize) {}
 
   async saveData(body: CreateTablectDto) {
-    const Id = uuidv4();
+    console.log(body);
     const {
+      Id,
       TablectId,
       No,
       ProgressStagePartName,
@@ -20,15 +20,14 @@ export class TablectService {
       Nva,
       Va,
       MachineType,
-      ConfirmId,
       CreatedBy,
     } = body;
     await this.IE.query(
       `
       INSERT INTO IE_TableCT
-          (Id, TablectId, [No], ProgressStagePartName, Area, [Path], Nva, Va, MachineType, ConfirmId, CreatedBy, CreatedAt)
+          (Id, TablectId, [No], ProgressStagePartName, Area, [Path], Nva, Va, MachineType, CreatedBy, CreatedAt)
       VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())`,
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())`,
       {
         replacements: [
           Id,
@@ -40,7 +39,6 @@ export class TablectService {
           Nva,
           Va,
           MachineType,
-          ConfirmId,
           CreatedBy,
         ],
         type: QueryTypes.INSERT,

@@ -10,6 +10,7 @@ export interface ITableHeader {
 }
 
 export interface ITableCtPayload {
+  Id: string;
   TablectId: string;
   No: string;
   ProgressStagePartName: string;
@@ -18,7 +19,7 @@ export interface ITableCtPayload {
   Nva: string;
   Va: string;
   MachineType: string;
-  ConfirmId: string;
+  ConfirmId?: string;
   CreatedBy: string;
 }
 

@@ -1,4 +1,5 @@
 export interface IHistoryplaybackPayload {
+  Id: string;
   HistoryPlaybackId: string;
   Type: string;
   Start: string;

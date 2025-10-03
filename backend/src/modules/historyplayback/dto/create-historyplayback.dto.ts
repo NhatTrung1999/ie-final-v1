@@ -1,4 +1,5 @@
 export class CreateHistoryplaybackDto {
+  Id: string;
   HistoryPlaybackId: string;
   Type: string;
   Start: string;

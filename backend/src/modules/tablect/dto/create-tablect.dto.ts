@@ -1,4 +1,5 @@
 export class CreateTablectDto {
+  Id: string;
   TablectId: string;
   No: string;
   ProgressStagePartName: string;
@@ -7,6 +8,6 @@ export class CreateTablectDto {
   Nva: string;
   Va: string;
   MachineType: string;
-  ConfirmId: string;
+  ConfirmId?: string;
   CreatedBy: string;
 }

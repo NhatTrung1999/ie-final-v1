@@ -8,7 +8,7 @@ export class TablectController {
 
   @Post('save-data')
   async saveData(@Body() body: CreateTablectDto) {
-    console.log(body);
+    // console.log(body);
     return this.tablectService.saveData(body);
   }
 }

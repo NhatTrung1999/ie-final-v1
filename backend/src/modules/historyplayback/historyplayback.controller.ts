@@ -22,7 +22,8 @@ export class HistoryplaybackController {
   }
 
   @Post('historyplayback-create')
-  async historyplaybackCreate(@Body() body: CreateHistoryplaybackDto) {
+  async historyplaybackCreate(@Body() body: CreateHistoryplaybackDto[]) {
+    // console.log(body);
     return this.historyplaybackService.historyplaybackCreate(body);
   }
 

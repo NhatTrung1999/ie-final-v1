@@ -18,36 +18,49 @@ export class HistoryplaybackService {
     return records;
   }
 
-  async historyplaybackCreate(body: CreateHistoryplaybackDto) {
-    const Id = uuidv4();
-    const { HistoryPlaybackId, Type, Start, Stop, CreatedBy, CreatedFactory } =
-      body;
-    await this.IE.query(
-      `INSERT INTO IE_HistoryPlayback
+  async historyplaybackCreate(body: CreateHistoryplaybackDto[]) {
+    const records: IHistoryplaybackData[] = [];
+    for (let item of body) {
+      const {
+        Id,
+        HistoryPlaybackId,
+        Type,
+        Start,
+        Stop,
+        CreatedBy,
+        CreatedFactory,
+      } = item;
+      await this.IE.query(
+        `INSERT INTO IE_HistoryPlayback
             (Id, HistoryPlaybackId, [Type], [Start], Stop, CreatedBy, CreatedFactory, CreatedAt)
         VALUES
             (?, ?, ?, ?, ?, ?, ?, GETDATE())`,
-      {
-        replacements: [
-          Id,
-          HistoryPlaybackId,
-          Type,
-          Start,
-          Stop,
-          CreatedBy,
-          CreatedFactory,
-        ],
-        type: QueryTypes.SELECT,
-      },
-    );
-    const records: IHistoryplaybackData[] = await this.IE.query(
-      `SELECT *
-        FROM IE_HistoryPlayback
-        WHERE Id = ?`,
-      { replacements: [Id], type: QueryTypes.SELECT },
-    );
+        {
+          replacements: [
+            Id,
+            HistoryPlaybackId,
+            Type,
+            Start,
+            Stop,
+            CreatedBy,
+            CreatedFactory,
+          ],
+          type: QueryTypes.SELECT,
+        },
+      );
 
-    return records[0];
+      const res: IHistoryplaybackData[] = await this.IE.query(
+        `SELECT *
+          FROM IE_HistoryPlayback
+          WHERE Id = ?`,
+        { replacements: [Id], type: QueryTypes.SELECT },
+      );
+
+      // return res[0];
+      records.push(res[0]);
+    }
+
+    return records;
   }
 
   async historyplaybackDelete(Id: string, HistoryPlaybackId: string) {

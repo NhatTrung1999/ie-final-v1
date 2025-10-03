@@ -6,7 +6,7 @@ const historyplaybackApi = {
     const res = await axiosConfig.get('historyplayback/historyplayback-list');
     return res.data;
   },
-  historyplaybackCreate: async (payload: IHistoryplaybackPayload) => {
+  historyplaybackCreate: async (payload: IHistoryplaybackPayload[]) => {
     const res = await axiosConfig.post(
       'historyplayback/historyplayback-create',
       payload
