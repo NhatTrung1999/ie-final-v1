@@ -20,16 +20,20 @@ export const historyplaybackList = createAsyncThunk(
 
 export const historyplaybackCreate = createAsyncThunk(
   'historyplayback/historyplayback-create',
-  async (payload: IHistoryplaybackPayload[]) => {
-    const res = await historyplaybackApi.historyplaybackCreate(payload);
-    return res as IHistoryplaybackData;
+  async (payload: IHistoryplaybackPayload, { rejectWithValue }) => {
+    try {
+      const res = await historyplaybackApi.historyplaybackCreate(payload);
+      return res as IHistoryplaybackData;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
   }
 );
 
 export const historyplaybackDelete = createAsyncThunk(
   'historyplayback/historyplayback-delete',
-  async (payload: { Id: string; HistoryPlaybackId: string }) => {
-    const res = await historyplaybackApi.historyplaybackDelete(payload);
+  async (Id: string) => {
+    const res = await historyplaybackApi.historyplaybackDelete(Id);
     return res;
   }
 );
@@ -72,6 +76,39 @@ const historyplaybackSlice = createSlice({
         }
       )
       .addCase(historyplaybackList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+    builder
+      .addCase(historyplaybackCreate.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        historyplaybackCreate.fulfilled,
+        (state, action: PayloadAction<IHistoryplaybackData>) => {
+          state.loading = false;
+          state.historyplayback.push(action.payload);
+        }
+      )
+      .addCase(historyplaybackCreate.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(historyplaybackDelete.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        historyplaybackDelete.fulfilled,
+        (state, action: PayloadAction<IHistoryplaybackData[]>) => {
+          state.loading = false;
+          state.historyplayback = action.payload;
+        }
+      )
+      .addCase(historyplaybackDelete.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

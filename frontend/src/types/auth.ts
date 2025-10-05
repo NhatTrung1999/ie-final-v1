@@ -28,4 +28,5 @@ export interface ILoginPayload {
   username: string;
   password: string;
   factory: string;
+  category?: string;
 }

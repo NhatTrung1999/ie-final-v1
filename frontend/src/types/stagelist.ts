@@ -27,4 +27,11 @@ export interface IStageListState {
   path: string | undefined;
   loading: boolean;
   error: string | null;
+  formUploadVideo: {
+    date: string;
+    season: string;
+    stage: string;
+    area: string;
+    article: string;
+  };
 }

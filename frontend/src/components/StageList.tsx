@@ -11,12 +11,9 @@ import {
   stagelistDelete,
   stagelistList,
 } from '../features/stagelist/stagelistSlice';
-import type { ITableData } from '../types/tablect';
-import {
-  setActiveColId,
-  setCreateRowData,
-} from '../features/tablect/tablectSlice';
-import { v4 as uuidv4 } from 'uuid';
+import type { ITableCtPayload } from '../types/tablect';
+import { createData, setActiveColId } from '../features/tablect/tablectSlice';
+import { toast } from 'react-toastify';
 
 const StageList = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -67,56 +64,69 @@ const StageList = () => {
     }
   };
 
-  const handleDelete = (e: React.MouseEvent<HTMLDivElement>, id: string) => {
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLDivElement>,
+    id: string
+  ) => {
     e.stopPropagation();
-    dispatch(stagelistDelete(id));
-    // console.log(id);
+
+    const result = await dispatch(stagelistDelete(id));
+
+    if (stagelistDelete.fulfilled.match(result)) {
+      toast.success('Delete success!');
+    } else {
+      toast.error(result.payload as string);
+    }
   };
 
   const handleCreateRowData = (item: IStageList) => {
     const isDuplicate = tablect.some((row) => row.Id === item.Id);
-
     if (isDuplicate) {
       dispatch(setPath(item.Path));
       return;
     }
-
-    const newData: ITableData = {
-      Id: uuidv4(),
-      TablectId: item.Id,
+    const newData: ITableCtPayload = {
+      Id: item.Id,
+      // TablectId: item.Id,
       No: item.Name.split('. ')[0] || 'Unknown',
       ProgressStagePartName:
         item.Name.split('. ')[1].split('.')[0] || 'Unknown',
       Area: item.Area,
       Path: item.Path,
-      Nva: {
+      Nva: JSON.stringify({
         Type: 'NVA',
         Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         Average: 0,
-      },
-      Va: {
+      }),
+      Va: JSON.stringify({
         Type: 'VA',
         Cts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         Average: 0,
-      },
+      }),
       MachineType: '',
       ConfirmId: '',
+      IsSave: false,
       CreatedBy: 'admin',
-      CreatedAt: '',
     };
 
     dispatch(setPath(item.Path));
-    dispatch(setCreateRowData(newData));
+    dispatch(createData(newData));
   };
 
   const handelClick = (item: IStageList) => {
     if (item.Id === activeItemId) {
+      dispatch(setActiveItemId(null));
       dispatch(setPath(''));
+      dispatch(setActiveColId(null));
     } else {
-      handleCreateRowData(item);
+      dispatch(setActiveItemId(item.Id));
+      dispatch(setPath(item.Path));
     }
-    dispatch(setActiveItemId(item.Id));
-    dispatch(setActiveColId(null));
+    handleCreateRowData(item);
+  };
+
+  const handleRefresh = () => {
+    dispatch(stagelistList());
   };
 
   return (
@@ -126,7 +136,7 @@ const StageList = () => {
           <div className="bg-gray-500 flex justify-between items-center px-2 py-2 text-white">
             <div className="font-bold">StageList</div>
             <div className="flex items-center gap-3">
-              <div className="cursor-pointer p-1">
+              <div className="cursor-pointer p-1" onClick={handleRefresh}>
                 <FaSyncAlt size={16} />
               </div>
               <div
@@ -151,7 +161,12 @@ const StageList = () => {
                 className={`px-2 py-1 rounded-lg font-bold ${
                   activeTabId === item ? 'bg-gray-900/50 text-white' : ''
                 }`}
-                onClick={() => dispatch(setActiveTabId(item))}
+                onClick={() => {
+                  dispatch(setActiveTabId(item));
+                  dispatch(setActiveItemId(null));
+                  dispatch(setPath(''));
+                  dispatch(setActiveColId(null));
+                }}
               >
                 {item}
               </div>

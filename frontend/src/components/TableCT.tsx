@@ -1,20 +1,27 @@
-import React, { Fragment, type MouseEvent } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { Fragment, useEffect, type MouseEvent } from 'react';
 import { TABLE_HEADER, type ITableData } from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
 import {
+  deleteData,
+  getData,
   saveData,
   setActiveColId,
   setUpdateAverage,
 } from '../features/tablect/tablectSlice';
-import { historyplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
+import { setCurrentTime } from '../features/controlpanel/controlpanelSlice';
 
 const TableCT = () => {
   const { tablect, activeColId } = useAppSelector((state) => state.tablect);
-  const { activeItemId } = useAppSelector((state) => state.stagelist);
-  const { historyplayback } = useAppSelector((state) => state.historyplayback);
+  const { activeItemId, activeTabId } = useAppSelector(
+    (state) => state.stagelist
+  );
+  const category = localStorage.getItem('category');
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(getData());
+  }, []);
 
   const handleClickRow = (item: ITableData) => {
     const rowId = item.Id;
@@ -51,21 +58,14 @@ const TableCT = () => {
     item: ITableData
   ) => {
     e.stopPropagation();
-    // console.log('Done', item);
-    const totalNva = item.Nva.Cts.filter((item) => item > 0);
-    const totalVa = item.Va.Cts.filter((item) => item > 0);
-    const avgNva =
-      item.Nva.Cts.reduce((prev, curr) => prev + curr, 0) / totalNva.length;
-    const avgVa =
-      item.Va.Cts.reduce((prev, curr) => prev + curr, 0) / totalVa.length;
     dispatch(
       setUpdateAverage({
-        id: item.Id,
-        avgNva: Number(avgNva.toFixed(2)),
-        avgVa: Number(avgVa.toFixed(2)),
+        category,
+        payload: item,
       })
     );
     dispatch(setActiveColId(null));
+    dispatch(setCurrentTime(0));
   };
 
   const handleSync = () => {
@@ -88,7 +88,7 @@ const TableCT = () => {
     e.stopPropagation();
     dispatch(
       saveData({
-        Id: uuidv4(),
+        Id: item.Id,
         TablectId: item.Id,
         No: item.No,
         ProgressStagePartName: item.ProgressStagePartName,
@@ -97,18 +97,34 @@ const TableCT = () => {
         Nva: JSON.stringify(item.Nva),
         Va: JSON.stringify(item.Va),
         MachineType: item.MachineType,
-        // ConfirmId: '12345',
+        IsSave: true,
         CreatedBy: 'admin',
       })
     );
+    dispatch(setActiveItemId(null));
+    dispatch(setPath(''));
+    // dispatch(historyplaybackCreate(historyplayback));
+  };
 
-    dispatch(historyplaybackCreate(historyplayback));
+  const handleDelete = (e: React.MouseEvent<HTMLDivElement>, Id: string) => {
+    e.stopPropagation();
+    dispatch(deleteData(Id));
   };
 
   const handleCheckAction = (item: ITableData) => {
     const avgNva = item.Nva.Average;
     const avgVa = item.Va.Average;
     if (avgNva > 0 && avgVa > 0) {
+      if (item.IsSave) {
+        return (
+          <div
+            className="bg-red-500 px-2 py-1 text-white font-medium rounded-md"
+            onClick={(e) => handleDelete(e, item.Id)}
+          >
+            Delete
+          </div>
+        );
+      }
       return (
         <div
           className="bg-blue-500 px-2 py-1 text-white font-medium rounded-md"
@@ -182,101 +198,107 @@ const TableCT = () => {
             ))}
           </thead>
           <tbody>
-            {tablect.map((item) => (
-              <Fragment key={item.Id}>
-                <tr
-                  className={`cursor-pointer ${
-                    item.Id === activeItemId ? 'bg-gray-300' : ''
-                  }`}
-                  onClick={() => handleClickRow(item)}
-                >
-                  <td
-                    className="text-center border border-l-0 border-t-0 border-gray-400"
-                    rowSpan={2}
+            {tablect
+              .filter((item) => item.Area === activeTabId)
+              .map((item) => (
+                <Fragment key={item.Id}>
+                  <tr
+                    className={`cursor-pointer ${
+                      item.Id === activeItemId ? 'bg-gray-300' : ''
+                    }`}
+                    onClick={() => handleClickRow(item)}
                   >
-                    {item.No}
-                  </td>
-                  <td
-                    className="text-center border border-t-0 border-gray-400"
-                    rowSpan={2}
-                  >
-                    {item.ProgressStagePartName}
-                  </td>
-                  <td className="text-center border border-t-0 border-gray-400">
-                    {item.Nva.Type}
-                  </td>
-                  {item.Nva.Cts.map((ct, i) => (
                     <td
-                      className={`text-center border border-t-0 border-gray-400 ${
-                        `${item.Id}_${i}` === activeColId ? 'bg-amber-200' : ''
-                      }`}
-                      key={i}
-                      onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
-                      }
+                      className="text-center border border-l-0 border-t-0 border-gray-400"
+                      rowSpan={2}
                     >
-                      {Number(ct.toFixed(2))}
+                      {item.No}
                     </td>
-                  ))}
-                  <td className="text-center border border-t-0 border-gray-400">
-                    {item.Nva.Average}
-                  </td>
-                  <td
-                    className="text-center border border-t-0 border-gray-400 px-2"
-                    rowSpan={2}
-                  >
-                    {item.MachineType ? (
-                      item.MachineType
-                    ) : (
-                      <select className="border w-full py-1 rounded-md border-gray-400">
-                        <option value="">May 1</option>
-                        <option value="">May 2</option>
-                        <option value="">May 3</option>
-                        <option value="">May 4</option>
-                      </select>
-                    )}
-                  </td>
-                  <td
-                    className="text-center border border-t-0 border-gray-400"
-                    rowSpan={2}
-                  >
-                    {item.ConfirmId}
-                  </td>
-                  <td
-                    className="text-center border border-r-0 border-t-0 border-gray-400 p-2"
-                    rowSpan={2}
-                  >
-                    {handleCheckAction(item)}
-                  </td>
-                </tr>
-                <tr
-                  className={`cursor-pointer ${
-                    item.Id === activeItemId ? 'bg-gray-300' : ''
-                  }`}
-                  onClick={() => handleClickRow(item)}
-                >
-                  <td className="text-center border border-t-0 border-gray-400">
-                    {item.Va.Type}
-                  </td>
-                  {item.Va.Cts.map((ct, i) => (
                     <td
-                      className={`text-center border border-t-0 border-gray-400 ${
-                        `${item.Id}_${i}` === activeColId ? 'bg-amber-200' : ''
-                      }`}
-                      key={i}
-                      onClick={(e) =>
-                        handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
-                      }
+                      className="text-center border border-t-0 border-gray-400"
+                      rowSpan={2}
                     >
-                      {Number(ct.toFixed(2))}
+                      {item.ProgressStagePartName}
                     </td>
-                  ))}
-                  <td className="text-center border border-t-0 border-gray-400">
-                    {item.Va.Average}
-                  </td>
-                </tr>
-              </Fragment>
-            ))}
+                    <td className="text-center border border-t-0 border-gray-400">
+                      {item.Nva.Type}
+                    </td>
+                    {item.Nva.Cts.map((ct, i) => (
+                      <td
+                        className={`text-center border border-t-0 border-gray-400 ${
+                          `${item.Id}_${i}` === activeColId
+                            ? 'bg-amber-200'
+                            : ''
+                        }`}
+                        key={i}
+                        onClick={(e) =>
+                          handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
+                        }
+                      >
+                        {Number(ct.toFixed(2))}
+                      </td>
+                    ))}
+                    <td className="text-center border border-t-0 border-gray-400">
+                      {item.Nva.Average}
+                    </td>
+                    <td
+                      className="text-center border border-t-0 border-gray-400 px-2"
+                      rowSpan={2}
+                    >
+                      {item.MachineType ? (
+                        item.MachineType
+                      ) : (
+                        <select className="border w-full py-1 rounded-md border-gray-400">
+                          <option value="">May 1</option>
+                          <option value="">May 2</option>
+                          <option value="">May 3</option>
+                          <option value="">May 4</option>
+                        </select>
+                      )}
+                    </td>
+                    <td
+                      className="text-center border border-t-0 border-gray-400"
+                      rowSpan={2}
+                    >
+                      {item.ConfirmId}
+                    </td>
+                    <td
+                      className="text-center border border-r-0 border-t-0 border-gray-400 p-2"
+                      rowSpan={2}
+                    >
+                      {handleCheckAction(item)}
+                    </td>
+                  </tr>
+                  <tr
+                    className={`cursor-pointer ${
+                      item.Id === activeItemId ? 'bg-gray-300' : ''
+                    }`}
+                    onClick={() => handleClickRow(item)}
+                  >
+                    <td className="text-center border border-t-0 border-gray-400">
+                      {item.Va.Type}
+                    </td>
+                    {item.Va.Cts.map((ct, i) => (
+                      <td
+                        className={`text-center border border-t-0 border-gray-400 ${
+                          `${item.Id}_${i}` === activeColId
+                            ? 'bg-amber-200'
+                            : ''
+                        }`}
+                        key={i}
+                        onClick={(e) =>
+                          handleClickColumn(e, `${item.Id}_${i}`, item.Id, item)
+                        }
+                      >
+                        {Number(ct.toFixed(2))}
+                      </td>
+                    ))}
+                    <td className="text-center border border-t-0 border-gray-400">
+                      {item.Va.Average}
+                    </td>
+                  </tr>
+                </Fragment>
+              ))}
           </tbody>
         </table>
       </div>

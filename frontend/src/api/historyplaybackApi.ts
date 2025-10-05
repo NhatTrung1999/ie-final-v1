@@ -6,22 +6,16 @@ const historyplaybackApi = {
     const res = await axiosConfig.get('historyplayback/historyplayback-list');
     return res.data;
   },
-  historyplaybackCreate: async (payload: IHistoryplaybackPayload[]) => {
+  historyplaybackCreate: async (payload: IHistoryplaybackPayload) => {
     const res = await axiosConfig.post(
       'historyplayback/historyplayback-create',
       payload
     );
     return res.data;
   },
-  historyplaybackDelete: async ({
-    Id,
-    HistoryPlaybackId,
-  }: {
-    Id: string;
-    HistoryPlaybackId: string;
-  }) => {
+  historyplaybackDelete: async (Id: string) => {
     const res = await axiosConfig.delete(
-      `historyplayback/historyplayback-delete?Id=${Id}&HistoryPlaybackId=${HistoryPlaybackId}`
+      `historyplayback/historyplayback-delete?Id=${Id}`
     );
     return res.data;
   },

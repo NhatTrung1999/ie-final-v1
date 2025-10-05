@@ -5,19 +5,63 @@ import {
 } from '@reduxjs/toolkit';
 import type {
   ITableCtPayload,
+  ITableCtResponse,
   ITableCtState,
   ITableData,
 } from '../../types/tablect';
 import tablectApi from '../../api/tablectApi';
+
+export const getData = createAsyncThunk(
+  'tablect/get-data',
+  async (_, { rejectWithValue }) => {
+    try {
+      let res = await tablectApi.getData();
+      // res = res.map((item) => ({
+      //   ...item,
+      // Nva: JSON.parse(item.Nva),
+      // Va: JSON.parse(item.Va),
+      // }));
+
+      return res;
+    } catch (error: any) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const createData = createAsyncThunk(
+  'tablect/create-data',
+  async (payload: ITableCtPayload) => {
+    try {
+      const res = await tablectApi.createData(payload);
+      const convertNva = JSON.parse(res.Nva);
+      const convertVa = JSON.parse(res.Va);
+      return { ...res, Nva: convertNva, Va: convertVa } as ITableData;
+    } catch (error: any) {
+      console.log(error);
+    }
+  }
+);
+
+export const deleteData = createAsyncThunk(
+  'tablect/delete-data',
+  async (Id: string) => {
+    try {
+      const res = await tablectApi.deleteData(Id);
+      return res;
+    } catch (error: any) {
+      console.log(error);
+    }
+  }
+);
 
 export const saveData = createAsyncThunk(
   'tablect/save-data',
   async (payload: ITableCtPayload) => {
     try {
       const res = await tablectApi.saveData(payload);
-      const convertNva = JSON.parse(res.Nva);
-      const convertVa = JSON.parse(res.Va);
-      return { ...res, Nva: convertNva, Va: convertVa } as ITableData;
+      return res;
     } catch (error: any) {
       console.log(error);
     }
@@ -64,28 +108,160 @@ const tablectSlice = createSlice({
     },
     setUpdateAverage: (
       state,
-      action: PayloadAction<{ id: string; avgNva: number; avgVa: number }>
+      action: PayloadAction<{ category: string | null; payload: ITableData }>
     ) => {
-      const { id, avgNva, avgVa } = action.payload;
-      state.tablect.map((item) => {
-        if (item.Id === id) {
-          item.Nva.Average = avgNva;
-          item.Va.Average = avgVa;
+      const { category, payload } = action.payload;
+      if (category === 'FF28') {
+        const totalNva = payload.Nva.Cts.filter((item) => item > 0) || 0;
+        const totalVa = payload.Va.Cts.filter((item) => item > 0) || 0;
+        const avgNva =
+          payload.Nva.Cts.reduce((prev, curr) => prev + curr, 0) /
+            totalNva.length || 0;
+        const avgVa =
+          payload.Va.Cts.reduce((prev, curr) => prev + curr, 0) /
+            totalVa.length || 0;
+        state.tablect.map((item) => {
+          if (item.Id === payload.Id) {
+            item.Nva.Average = Number(avgNva.toFixed(2));
+            item.Va.Average = Number(avgVa.toFixed(2));
+          }
+        });
+      } else {
+        const item = state.tablect.find((item) => item.Id === payload.Id);
+        if (item) {
+          const validNvaCts = item.Nva.Cts.filter((ct) => ct > 0);
+          const validVaCts = item.Va.Cts.filter((ct) => ct > 0);
+
+          const avgNvaCt =
+            validNvaCts.reduce((sum, val) => sum + val, 0) / validNvaCts.length;
+          const avgVaCt =
+            validVaCts.reduce((sum, val) => sum + val, 0) / validVaCts.length;
+
+          const sumNvaCtBefore = validNvaCts.reduce((sum, val) => sum + val, 0);
+          const sumVaCtBefore = validVaCts.reduce((sum, val) => sum + val, 0);
+
+          let sumNvaCtAfter = 0;
+          let sumVaCtAfter = 0;
+
+          for (let i = 0; i < item.Nva.Cts.length - 1; i++) {
+            const randomOffset = Math.random() * 2 - 1;
+            if (item.Nva.Cts[i] === 0) {
+              item.Nva.Cts[i] = Number(
+                (+avgNvaCt.toFixed(2) + randomOffset).toFixed(2)
+              );
+              sumNvaCtAfter += item.Nva.Cts[i];
+            }
+            if (item.Va.Cts[i] === 0) {
+              item.Va.Cts[i] = Number(
+                (+avgVaCt.toFixed(2) + randomOffset).toFixed(2)
+              );
+              sumVaCtAfter += item.Va.Cts[i];
+            }
+          }
+
+          const lastNvaCt =
+            +avgNvaCt.toFixed(2) * 10 - sumNvaCtBefore - sumNvaCtAfter;
+          const lastVaCt =
+            +avgVaCt.toFixed(2) * 10 - sumVaCtBefore - sumVaCtAfter;
+
+          item.Nva.Cts[item.Nva.Cts.length - 1] = Number(lastNvaCt.toFixed(2));
+
+          item.Va.Cts[item.Va.Cts.length - 1] = Number(lastVaCt.toFixed(2));
+
+          const averageNvaCt =
+            item.Nva.Cts.reduce((sum, val) => sum + val, 0) /
+            item.Nva.Cts.length;
+
+          const averageVaCt =
+            item.Va.Cts.reduce((sum, val) => sum + val, 0) / item.Va.Cts.length;
+
+          item.Nva.Average = Number(averageNvaCt.toFixed(2));
+          item.Va.Average = Number(averageVaCt.toFixed(2));
         }
-      });
+      }
     },
   },
   extraReducers: (builder) => {
+    builder
+      .addCase(getData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        getData.fulfilled,
+        (state, action: PayloadAction<ITableCtResponse[]>) => {
+          state.loading = false;
+          state.tablect = action.payload.map((item) => ({
+            ...item,
+            Nva: JSON.parse(item.Nva),
+            Va: JSON.parse(item.Va),
+          }));
+        }
+      )
+      .addCase(getData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(createData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createData.fulfilled, (state, action) => {
+        state.loading = false;
+        // state.tablect.push(action.payload as ITableData);
+        if (action.payload) {
+          state.tablect.push(action.payload);
+        }
+      })
+      .addCase(createData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(deleteData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        deleteData.fulfilled,
+        (state, action: PayloadAction<ITableCtResponse[]>) => {
+          state.loading = false;
+          state.tablect = action.payload.map((item) => ({
+            ...item,
+            Nva: JSON.parse(item.Nva),
+            Va: JSON.parse(item.Va),
+          }));
+        }
+      )
+      .addCase(deleteData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
     builder
       .addCase(saveData.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(saveData.fulfilled, (state, action) => {
-        state.loading = false;
-        console.log(action.payload);
-        // state.tablect.push(action.payload);
-      })
+      .addCase(
+        saveData.fulfilled,
+        (state, action: PayloadAction<ITableCtResponse[]>) => {
+          state.loading = false;
+          // console.log(action.payload);
+          state.tablect = action.payload.map((item) => ({
+            ...item,
+            Nva: JSON.parse(item.Nva),
+            Va: JSON.parse(item.Va),
+          }));
+          // // state.tablect.push(action.payload as ITableData);
+          // if (action.payload) {
+          //   state.tablect.push(action.payload);
+          // }
+        }
+      )
       .addCase(saveData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

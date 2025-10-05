@@ -12,40 +12,57 @@ const initialState: IStageListState = {
   activeTabId: 'CUTTING',
   activeItemId: null,
   path: 'null',
+  formUploadVideo: {
+    date: '',
+    season: '',
+    stage: '',
+    area: '',
+    article: '',
+  },
   loading: false,
   error: null,
 };
 
 export const stagelistUpload = createAsyncThunk(
   'stagelist/upload',
-  async ({
-    payload,
-    onProgress,
-    controller,
-  }: {
-    payload: IFormModal;
-    onProgress?: (p: number) => void;
-    controller: AbortController;
-  }) => {
-    const { date, season, stage, area, article, files } = payload;
-    const formData = new FormData();
-
-    formData.append('date', date.trim());
-    formData.append('season', season.toUpperCase().trim());
-    formData.append('stage', stage.trim());
-    formData.append('area', area.trim());
-    formData.append('article', article.toUpperCase().trim());
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
-      }
-    }
-    const res = await stagelistApi.stagelistUpload(
-      formData,
+  async (
+    {
+      payload,
       onProgress,
-      controller.signal
-    );
-    return res as IStageList[];
+      controller,
+    }: {
+      payload: IFormModal;
+      onProgress?: (p: number) => void;
+      controller: AbortController;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const { date, season, stage, area, article, files } = payload;
+      const formData = new FormData();
+
+      formData.append('date', date.trim());
+      formData.append('season', season.toUpperCase().trim());
+      formData.append('stage', stage.trim());
+      formData.append('area', area.trim());
+      formData.append('article', article.toUpperCase().trim());
+      if (files) {
+        for (let i = 0; i < files.length; i++) {
+          formData.append('files', files[i]);
+        }
+      }
+      const res = await stagelistApi.stagelistUpload(
+        formData,
+        onProgress,
+        controller.signal
+      );
+      return res as IStageList[];
+    } catch (error: any) {
+      // console.log(error);
+      return rejectWithValue(
+        error?.response?.data?.message || 'Upload failed!'
+      );
+    }
   }
 );
 
@@ -56,9 +73,14 @@ export const stagelistList = createAsyncThunk('stagelist/list', async () => {
 
 export const stagelistDelete = createAsyncThunk(
   'stagelist/delete',
-  async (id: string) => {
-    const res = await stagelistApi.stagelistDelete(id);
-    return res as IStageList[];
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await stagelistApi.stagelistDelete(id);
+      return res as IStageList[];
+    } catch (error: any) {
+      // console.log(error);
+      return rejectWithValue(error?.response?.data?.message);
+    }
   }
 );
 
@@ -78,6 +100,18 @@ const stagelistSlice = createSlice({
     },
     setPath: (state, action: PayloadAction<string>) => {
       state.path = action.payload;
+    },
+    setFormUploadVideo: (
+      state,
+      action: PayloadAction<{
+        date: string;
+        season: string;
+        stage: string;
+        area: string;
+        article: string;
+      }>
+    ) => {
+      state.formUploadVideo = { ...action.payload };
     },
   },
   extraReducers: (builder) => {
@@ -134,7 +168,7 @@ const stagelistSlice = createSlice({
   },
 });
 
-export const { setActiveTabId, setPath, setActiveItemId } =
+export const { setActiveTabId, setPath, setActiveItemId, setFormUploadVideo } =
   stagelistSlice.actions;
 
 export default stagelistSlice.reducer;

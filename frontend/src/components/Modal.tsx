@@ -3,9 +3,13 @@ import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { IFormModal } from '../types/modal';
-import { useAppDispatch } from '../app/hooks';
-import { stagelistUpload } from '../features/stagelist/stagelistSlice';
-import { useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import {
+  setFormUploadVideo,
+  stagelistUpload,
+} from '../features/stagelist/stagelistSlice';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 type Props = {
   setIsOpen: (isOpen: boolean) => void;
@@ -34,6 +38,7 @@ const validationSchema = Yup.object({
 const Modal = ({ setIsOpen }: Props) => {
   const [progress, setProgress] = useState<number>(0);
   const [controller, setController] = useState<AbortController | null>(null);
+  const { formUploadVideo } = useAppSelector((state) => state.stagelist);
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
@@ -42,6 +47,15 @@ const Modal = ({ setIsOpen }: Props) => {
     onSubmit: async (data) => {
       const abortController = new AbortController();
       setController(abortController);
+      dispatch(
+        setFormUploadVideo({
+          date: data.date,
+          season: data.season,
+          stage: data.stage,
+          area: data.area,
+          article: data.article,
+        })
+      );
 
       const result = await dispatch(
         stagelistUpload({
@@ -51,8 +65,12 @@ const Modal = ({ setIsOpen }: Props) => {
         })
       );
       if (stagelistUpload.fulfilled.match(result)) {
-        setIsOpen(false);
+        toast.success('Upload video success!');
+      } else {
+        toast.error(result.payload as string);
       }
+      setIsOpen(false);
+      setProgress(0);
     },
   });
 
@@ -65,11 +83,24 @@ const Modal = ({ setIsOpen }: Props) => {
   const handleCancelUpload = () => {
     if (controller) {
       controller.abort();
-      setIsOpen(false);
       setProgress(0);
       setController(null);
     }
+    setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (formUploadVideo) {
+      formik.setValues({
+        ...formik.values,
+        date: formUploadVideo.date || new Date().toISOString().slice(0, 10),
+        season: formUploadVideo.season || '',
+        stage: formUploadVideo.stage || '',
+        area: formUploadVideo.area || 'CUTTING',
+        article: formUploadVideo.article || '',
+      });
+    }
+  }, [formUploadVideo]);
 
   return (
     <div className="fixed bg-transparent inset-0 flex justify-center items-center z-50">

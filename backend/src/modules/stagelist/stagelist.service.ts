@@ -1,4 +1,10 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateStagelistDto } from './dto/create-stagelist.dto';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -7,6 +13,7 @@ import { QueryTypes } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 import { IStageListData } from 'src/types/stagelist';
 import { ConfigService } from '@nestjs/config';
+import { ITablectData } from 'src/types/tablect';
 
 @Injectable()
 export class StagelistService {
@@ -19,26 +26,27 @@ export class StagelistService {
     createStagelistDto: CreateStagelistDto,
     files: Array<Express.Multer.File>,
   ) {
-    const { date, season, stage, area, article } = createStagelistDto;
-    let resData: IStageListData[] = [];
+    try {
+      const { date, season, stage, area, article } = createStagelistDto;
+      let resData: IStageListData[] = [];
 
-    const basePath = path.join(
-      process.cwd(),
-      'uploads',
-      date,
-      season,
-      stage,
-      area,
-      article,
-    );
-    if (!fs.existsSync(basePath)) {
-      fs.mkdirSync(basePath, { recursive: true });
-    }
-    for (let item of files) {
-      const id = uuidv4();
-      const filePath = path.join(basePath, item.filename);
-      await this.IE.query(
-        `INSERT INTO IE_StageList
+      const basePath = path.join(
+        process.cwd(),
+        'uploads',
+        date,
+        season,
+        stage,
+        area,
+        article,
+      );
+      if (!fs.existsSync(basePath)) {
+        fs.mkdirSync(basePath, { recursive: true });
+      }
+      for (let item of files) {
+        const id = uuidv4();
+        const filePath = path.join(basePath, item.filename);
+        await this.IE.query(
+          `INSERT INTO IE_StageList
         (
           Id,
           [Date],
@@ -66,40 +74,43 @@ export class StagelistService {
           ?,
           GETDATE()
         )`,
-        {
-          replacements: [
-            id,
-            date,
-            season,
-            stage,
-            area,
-            article,
-            item.filename,
-            filePath,
-            'admin',
-            'LYV',
-          ],
-          type: QueryTypes.INSERT,
-        },
-      );
+          {
+            replacements: [
+              id,
+              date,
+              season,
+              stage,
+              area,
+              article,
+              item.filename,
+              filePath,
+              'admin',
+              'LYV',
+            ],
+            type: QueryTypes.INSERT,
+          },
+        );
 
-      const result: IStageListData[] = await this.IE.query(
-        `SELECT * FROM IE_StageList WHERE Id = ?`,
-        { replacements: [id], type: QueryTypes.SELECT },
-      );
-      resData.push(result[0]);
+        const result: IStageListData[] = await this.IE.query(
+          `SELECT * FROM IE_StageList WHERE Id = ?`,
+          { replacements: [id], type: QueryTypes.SELECT },
+        );
+        resData.push(result[0]);
+      }
+
+      resData = resData.map((item) => {
+        const normalizedPath = item.Path.replace(/\\/g, '/');
+        const relativePath = normalizedPath.split('/uploads')[1];
+        return {
+          ...item,
+          Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
+        };
+      });
+
+      return resData;
+    } catch (error: any) {
+      throw new InternalServerErrorException('Upload video failed!');
     }
-
-    resData = resData.map((item) => {
-      const normalizedPath = item.Path.replace(/\\/g, '/');
-      const relativePath = normalizedPath.split('/uploads')[1];
-      return {
-        ...item,
-        Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
-      };
-    });
-
-    return resData;
   }
 
   async stagelistList() {
@@ -126,6 +137,18 @@ export class StagelistService {
       `SELECT * FROM IE_StageList WHERE Id = ?`,
       { replacements: [id], type: QueryTypes.SELECT },
     );
+
+    const checkExist: ITablectData[] = await this.IE.query(
+      `SELECT * FROM IE_TableCT WHERE Id = ?`,
+      { replacements: [id], type: QueryTypes.SELECT },
+    );
+
+    if (checkExist.length > 0) {
+      throw new BadRequestException(
+        'Please delete data related in TableCT before!',
+      );
+    }
+
     if (!record.length) {
       throw new NotFoundException(`No stagelist found with Id: ${id}`);
     }

@@ -10,12 +10,14 @@ const initialValues: ILoginPayload = {
   username: '',
   password: '',
   factory: '',
+  category: '',
 };
 
 const validationSchema = Yup.object({
   username: Yup.string().required('Please do not it blank!'),
   password: Yup.string().required('Please do not it blank!'),
   factory: Yup.string().required('Please do not it blank!'),
+  category: Yup.string().required('Please do not it blank!'),
 });
 
 const Login = () => {
@@ -26,7 +28,7 @@ const Login = () => {
     initialValues,
     validationSchema,
     onSubmit: async (data) => {
-      const { username, password, factory } = data;
+      const { username, password, factory, category } = data;
       const result = await dispatch(
         login({
           username: username.trim(),
@@ -35,6 +37,7 @@ const Login = () => {
         })
       );
       if (login.fulfilled.match(result)) {
+        localStorage.setItem('category', category as string);
         navigate('/');
       } else {
         console.log(result.error);
@@ -44,7 +47,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-amber-50 flex justify-center items-center">
-      <div className="w-full max-w-2xl bg-white flex rounded-lg shadow-lg">
+      <div className="w-full max-w-3xl bg-white flex rounded-lg shadow-lg">
         <div className="flex-1 p-2">
           <img
             src={loginImage}
@@ -126,6 +129,30 @@ const Login = () => {
               {formik.touched.factory && formik.errors.factory ? (
                 <div className="text-red-500 text-sm mt-1">
                   {formik.errors.factory}
+                </div>
+              ) : null}
+            </div>
+            <div>
+              <label
+                htmlFor="category"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
+                Category
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formik.values.category}
+                onChange={formik.handleChange}
+                className="w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
+              >
+                <option value="">Choose option</option>
+                <option value="FF28">FF28</option>
+                <option value="COSTING">COSTING</option>
+              </select>
+              {formik.touched.category && formik.errors.category ? (
+                <div className="text-red-500 text-sm mt-1">
+                  {formik.errors.category}
                 </div>
               ) : null}
             </div>

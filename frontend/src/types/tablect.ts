@@ -11,7 +11,7 @@ export interface ITableHeader {
 
 export interface ITableCtPayload {
   Id: string;
-  TablectId: string;
+  TablectId?: string;
   No: string;
   ProgressStagePartName: string;
   Area: string;
@@ -21,6 +21,7 @@ export interface ITableCtPayload {
   MachineType: string;
   ConfirmId?: string;
   CreatedBy: string;
+  IsSave?: boolean;
 }
 
 export interface ITableCtResponse {
@@ -34,6 +35,7 @@ export interface ITableCtResponse {
   Va: string;
   MachineType: string;
   ConfirmId: string;
+  IsSave?: boolean;
   CreatedBy: string;
   CreatedAt: string;
 }
@@ -57,6 +59,7 @@ export interface ITableData {
   };
   MachineType: string;
   ConfirmId: string;
+  IsSave?: boolean;
   CreatedBy: string;
   CreatedAt: string;
 }

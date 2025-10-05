@@ -1,6 +1,5 @@
 import { FaCircleCheck, FaPause, FaPlay } from 'react-icons/fa6';
-import { useAppSelector } from '../app/hooks';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   resetTypes,
   setIsPlaying,
@@ -12,8 +11,9 @@ import { formatDuration } from '../utils/formatDuration';
 import { usePlayer } from '../hooks/usePlayer';
 import { toast } from 'react-toastify';
 import { setUpdateValueRow } from '../features/tablect/tablectSlice';
-import { setHistoryplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
+import { historyplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
 import { v4 as uuidv4 } from 'uuid';
+import type { IHistoryplaybackPayload } from '../types/historyplayback';
 
 const ControlPanel = () => {
   const { playRef } = usePlayer();
@@ -21,7 +21,7 @@ const ControlPanel = () => {
   const { activeItemId } = useAppSelector((state) => state.stagelist);
   const { isPlaying, duration, currentTime, startTime, stopTime, types } =
     useAppSelector((state) => state.controlpanel);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const handleStartStop = () => {
     dispatch(setIsPlaying(!isPlaying));
     if (!isPlaying) {
@@ -63,19 +63,19 @@ const ControlPanel = () => {
       return;
     }
     const valueType = stopTime - startTime;
+
+    const newData: IHistoryplaybackPayload = {
+      Id: uuidv4(),
+      HistoryPlaybackId: activeItemId as string,
+      Type: type,
+      Start: String(startTime),
+      Stop: String(stopTime),
+      CreatedBy: 'admin',
+      CreatedFactory: 'LYV',
+    };
+
     dispatch(setTypes({ type, valueTime: Number(valueType.toFixed(2)) }));
-    dispatch(
-      setHistoryplaybackCreate({
-        Id: uuidv4(),
-        HistoryPlaybackId: activeItemId as string,
-        Type: type,
-        Start: String(startTime),
-        Stop: String(stopTime),
-        CreatedBy: 'admin',
-        CreatedFactory: 'LYV',
-        CreatedAt: '2025-10-02',
-      })
-    );
+    dispatch(historyplaybackCreate(newData));
   };
 
   return (

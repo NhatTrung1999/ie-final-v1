@@ -22,19 +22,12 @@ export class HistoryplaybackController {
   }
 
   @Post('historyplayback-create')
-  async historyplaybackCreate(@Body() body: CreateHistoryplaybackDto[]) {
-    // console.log(body);
+  async historyplaybackCreate(@Body() body: CreateHistoryplaybackDto) {
     return this.historyplaybackService.historyplaybackCreate(body);
   }
 
   @Delete('historyplayback-delete')
-  async historyplaybackDelete(
-    @Query('Id') Id: string,
-    @Query('HistoryPlaybackId') HistoryPlaybackId: string,
-  ) {
-    return this.historyplaybackService.historyplaybackDelete(
-      Id,
-      HistoryPlaybackId,
-    );
+  async historyplaybackDelete(@Query('Id') Id: string) {
+    return this.historyplaybackService.historyplaybackDelete(Id);
   }
 }
