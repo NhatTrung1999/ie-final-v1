@@ -80,6 +80,7 @@ export const TABLE_HEADER: ITableHeader[] = [
 export interface ITableCtState {
   tablect: ITableData[];
   activeColId: string | null;
+  machineTypes: { value: string; label: string }[];
   loading: boolean;
   error: string | null;
 }

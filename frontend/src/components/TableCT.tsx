@@ -1,10 +1,17 @@
 import React, { Fragment, useEffect, type MouseEvent } from 'react';
-import { TABLE_HEADER, type ITableData } from '../types/tablect';
+import Select from 'react-select';
+import {
+  TABLE_HEADER,
+  type ITableCtPayload,
+  type ITableData,
+} from '../types/tablect';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setActiveItemId, setPath } from '../features/stagelist/stagelistSlice';
 import {
+  confirmData,
   deleteData,
   getData,
+  getDepartmentMachineType,
   saveData,
   setActiveColId,
   setUpdateAverage,
@@ -12,15 +19,19 @@ import {
 import { setCurrentTime } from '../features/controlpanel/controlpanelSlice';
 
 const TableCT = () => {
-  const { tablect, activeColId } = useAppSelector((state) => state.tablect);
+  const { tablect, activeColId, machineTypes } = useAppSelector(
+    (state) => state.tablect
+  );
   const { activeItemId, activeTabId } = useAppSelector(
     (state) => state.stagelist
   );
+  const { auth } = useAppSelector((state) => state.auth);
   const category = localStorage.getItem('category');
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch(getData());
+    dispatch(getDepartmentMachineType());
   }, []);
 
   const handleClickRow = (item: ITableData) => {
@@ -72,7 +83,15 @@ const TableCT = () => {
     console.log('Sync');
   };
   const handleConfirm = () => {
-    console.log('Confirm');
+    const newTablect: ITableCtPayload[] = tablect
+      .filter((item) => item.ConfirmId === null)
+      .map((item) => ({
+        ...item,
+        Nva: JSON.stringify(item.Nva),
+        Va: JSON.stringify(item.Va),
+        ConfirmId: auth?.UserID || '',
+      }));
+    dispatch(confirmData(newTablect));
   };
   const handleExcelLSA = () => {
     console.log('Excel LSA');
@@ -89,7 +108,6 @@ const TableCT = () => {
     dispatch(
       saveData({
         Id: item.Id,
-        TablectId: item.Id,
         No: item.No,
         ProgressStagePartName: item.ProgressStagePartName,
         Area: item.Area,
@@ -106,23 +124,29 @@ const TableCT = () => {
     // dispatch(historyplaybackCreate(historyplayback));
   };
 
-  const handleDelete = (e: React.MouseEvent<HTMLDivElement>, Id: string) => {
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>, Id: string) => {
     e.stopPropagation();
     dispatch(deleteData(Id));
   };
 
   const handleCheckAction = (item: ITableData) => {
+    // console.log(item);
     const avgNva = item.Nva.Average;
     const avgVa = item.Va.Average;
     if (avgNva > 0 && avgVa > 0) {
       if (item.IsSave) {
         return (
-          <div
-            className="bg-red-500 px-2 py-1 text-white font-medium rounded-md"
+          <button
+            className={`bg-red-500 px-2 py-1 text-white font-medium rounded-md ${
+              item.ConfirmId !== null
+                ? 'cursor-not-allowed opacity-70'
+                : 'cursor-pointer'
+            }`}
             onClick={(e) => handleDelete(e, item.Id)}
+            disabled={item.ConfirmId !== null ? true : false}
           >
             Delete
-          </div>
+          </button>
         );
       }
       return (
@@ -156,12 +180,17 @@ const TableCT = () => {
             >
               Sync
             </div>
-            <div
-              className="bg-blue-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+            <button
+              className={`bg-blue-500 px-2 py-1 font-semibold rounded-md  ${
+                tablect.length === 0
+                  ? 'cursor-not-allowed opacity-70'
+                  : 'cursor-pointer hover:opacity-70'
+              }`}
               onClick={handleConfirm}
+              disabled={tablect.length === 0 ? true : false}
             >
               Confirm
-            </div>
+            </button>
             <div
               className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
               onClick={handleExcelLSA}
@@ -248,12 +277,21 @@ const TableCT = () => {
                       {item.MachineType ? (
                         item.MachineType
                       ) : (
-                        <select className="border w-full py-1 rounded-md border-gray-400">
-                          <option value="">May 1</option>
-                          <option value="">May 2</option>
-                          <option value="">May 3</option>
-                          <option value="">May 4</option>
-                        </select>
+                        // <select className="border w-full py-1 rounded-md border-gray-400">
+                        //   <option value="">May 1</option>
+                        //   <option value="">May 2</option>
+                        //   <option value="">May 3</option>
+                        //   <option value="">May 4</option>
+                        // </select>
+                        <Select
+                          options={machineTypes}
+                          menuPlacement="auto"
+                          menuPortalTarget={document.body}
+                          menuPosition="absolute"
+                          styles={{
+                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          }}
+                        />
                       )}
                     </td>
                     <td

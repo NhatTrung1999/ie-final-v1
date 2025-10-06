@@ -16,12 +16,6 @@ export const getData = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       let res = await tablectApi.getData();
-      // res = res.map((item) => ({
-      //   ...item,
-      // Nva: JSON.parse(item.Nva),
-      // Va: JSON.parse(item.Va),
-      // }));
-
       return res;
     } catch (error: any) {
       console.log(error);
@@ -68,9 +62,35 @@ export const saveData = createAsyncThunk(
   }
 );
 
+export const confirmData = createAsyncThunk(
+  'tablect/confirm-data',
+  async (payload: ITableCtPayload[]) => {
+    try {
+      const res = await tablectApi.confirmData(payload);
+      return res;
+    } catch (error: any) {
+      console.log(error);
+    }
+  }
+);
+
+export const getDepartmentMachineType = createAsyncThunk(
+  'tablect/get-department-machine-type',
+  async (_, { rejectWithValue }) => {
+    try {
+      let res = await tablectApi.getDepartmentMachineType();
+      return res;
+    } catch (error: any) {
+      console.log(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const initialState: ITableCtState = {
   tablect: [],
   activeColId: null,
+  machineTypes: [],
   loading: false,
   error: null,
 };
@@ -250,19 +270,60 @@ const tablectSlice = createSlice({
         saveData.fulfilled,
         (state, action: PayloadAction<ITableCtResponse[]>) => {
           state.loading = false;
-          // console.log(action.payload);
           state.tablect = action.payload.map((item) => ({
             ...item,
             Nva: JSON.parse(item.Nva),
             Va: JSON.parse(item.Va),
           }));
-          // // state.tablect.push(action.payload as ITableData);
-          // if (action.payload) {
-          //   state.tablect.push(action.payload);
-          // }
         }
       )
       .addCase(saveData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+    builder
+      .addCase(confirmData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        confirmData.fulfilled,
+        (state, action: PayloadAction<ITableCtResponse[]>) => {
+          state.loading = false;
+          state.tablect = action.payload.map((item) => ({
+            ...item,
+            Nva: JSON.parse(item.Nva),
+            Va: JSON.parse(item.Va),
+          }));
+        }
+      )
+      .addCase(confirmData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(getDepartmentMachineType.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        getDepartmentMachineType.fulfilled,
+        (
+          state,
+          action: PayloadAction<
+            { MachineTypeCN: string; MachineTypeVN: string; Loss: string }[]
+          >
+        ) => {
+          state.loading = false;
+          state.machineTypes = action.payload.map((item) => ({
+            value: `${item.MachineTypeCN}-${item.MachineTypeVN}_${item.Loss}`,
+            label: `${item.MachineTypeCN}-${item.MachineTypeVN}`,
+          }));
+          // console.log(action.payload);
+        }
+      )
+      .addCase(getDepartmentMachineType.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

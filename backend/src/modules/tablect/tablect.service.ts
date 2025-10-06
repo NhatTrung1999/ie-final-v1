@@ -1,4 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
 import { CreateTablectDto } from './dto/create-tablect.dto';
 import { QueryTypes } from 'sequelize';
@@ -12,7 +16,8 @@ export class TablectService {
   async getData() {
     const records: ITablectData[] = await this.IE.query(
       `SELECT *
-        FROM IE_TableCT`,
+        FROM IE_TableCT
+        ORDER BY CreatedAt`,
       { type: QueryTypes.SELECT },
     );
 
@@ -58,7 +63,8 @@ export class TablectService {
     const records: ITablectData[] = await this.IE.query(
       `SELECT *
         FROM IE_TableCT
-        WHERE Id = ?`,
+        WHERE Id = ?
+        ORDER BY CreatedAt`,
       { replacements: [Id], type: QueryTypes.SELECT },
     );
 
@@ -83,7 +89,8 @@ export class TablectService {
 
     const records: ITablectData[] = await this.IE.query(
       `SELECT *
-        FROM IE_TableCT`,
+        FROM IE_TableCT
+        ORDER BY CreatedAt`,
       { replacements: [Id], type: QueryTypes.SELECT },
     );
 
@@ -106,33 +113,49 @@ export class TablectService {
 
     const records: ITablectData[] = await this.IE.query(
       `SELECT *
-        FROM IE_TableCT`,
+        FROM IE_TableCT
+        ORDER BY CreatedAt`,
       { replacements: [Id], type: QueryTypes.SELECT },
     );
     return records;
   }
 
-  async confirmData(body: UpdateTablectDto) {
-    const { Id, ConfirmId } = body;
-    await this.IE.query(
-      `
-      UPDATE IE_TableCT
-      SET
-          ConfirmId = ?
-      WHERE Id = ?`,
-      {
-        replacements: [ConfirmId, Id],
-        type: QueryTypes.UPDATE,
-      },
+  async confirmData(body: UpdateTablectDto[]) {
+    // console.log(body);
+    try {
+      for (let item of body) {
+        const { Id, ConfirmId } = item;
+        await this.IE.query(
+          `
+          UPDATE IE_TableCT
+          SET
+              ConfirmId = ?
+          WHERE Id = ?`,
+          {
+            replacements: [ConfirmId, Id],
+            type: QueryTypes.UPDATE,
+          },
+        );
+      }
+      const records: ITablectData[] = await this.IE.query(
+        `SELECT *
+            FROM IE_TableCT
+            ORDER BY CreatedAt`,
+        { type: QueryTypes.SELECT },
+      );
+      return records;
+    } catch (error: any) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async getDepartmentMachineType() {
+    const records = await this.IE.query(
+      `SELECT MachineTypeCN, MachineTypeVN, Loss
+        FROM IE_Department_MachineType`,
+      { type: QueryTypes.SELECT },
     );
 
-    const records: ITablectData[] = await this.IE.query(
-      `SELECT *
-        FROM IE_TableCT
-        WHERE Id = ?`,
-      { replacements: [Id], type: QueryTypes.SELECT },
-    );
-
-    return records[0];
+    return records;
   }
 }

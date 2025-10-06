@@ -37,7 +37,12 @@ export class TablectController {
   }
 
   @Patch('confirm-data')
-  async confirmData(@Body() body: UpdateTablectDto) {
+  async confirmData(@Body() body: UpdateTablectDto[]) {
     return this.tablectService.confirmData(body);
+  }
+
+  @Get('get-department-machine-type')
+  async getDepartmentMachineType() {
+    return this.tablectService.getDepartmentMachineType();
   }
 }

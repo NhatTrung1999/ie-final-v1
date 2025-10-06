@@ -18,8 +18,12 @@ const tablectApi = {
     const res = await axiosConfig.patch('tablect/save-data', payload);
     return res.data;
   },
-  confirmData: async (payload: ITableCtPayload) => {
+  confirmData: async (payload: ITableCtPayload[]) => {
     const res = await axiosConfig.patch('tablect/confirm-data', payload);
+    return res.data;
+  },
+  getDepartmentMachineType: async () => {
+    const res = await axiosConfig.get('tablect/get-department-machine-type');
     return res.data;
   },
 };
