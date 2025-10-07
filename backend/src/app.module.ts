@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import { StagelistModule } from './modules/stagelist/stagelist.module';
 import { TablectModule } from './modules/tablect/tablect.module';
 import { HistoryplaybackModule } from './modules/historyplayback/historyplayback.module';
+import { ExcelModule } from './modules/excel/excel.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { HistoryplaybackModule } from './modules/historyplayback/historyplayback
     AuthModule,
     StagelistModule,
     TablectModule,
-    HistoryplaybackModule
+    HistoryplaybackModule,
+    ExcelModule
   ],
   controllers: [AppController],
   providers: [

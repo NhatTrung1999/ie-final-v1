@@ -19,6 +19,7 @@ export interface ITableCtPayload {
   Nva: string;
   Va: string;
   MachineType: string;
+  Loss?: string;
   ConfirmId?: string;
   CreatedBy: string;
   IsSave?: boolean;
@@ -58,6 +59,7 @@ export interface ITableData {
     Average: number;
   };
   MachineType: string;
+  Loss?: string;
   ConfirmId: string;
   IsSave?: boolean;
   CreatedBy: string;
@@ -81,6 +83,7 @@ export interface ITableCtState {
   tablect: ITableData[];
   activeColId: string | null;
   machineTypes: { value: string; label: string }[];
+  selectedMachineType: { machineTypeValue: string; Id: string };
   loading: boolean;
   error: string | null;
 }

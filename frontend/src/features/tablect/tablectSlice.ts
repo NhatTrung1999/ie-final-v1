@@ -91,6 +91,7 @@ const initialState: ITableCtState = {
   tablect: [],
   activeColId: null,
   machineTypes: [],
+  selectedMachineType: { machineTypeValue: '', Id: '' },
   loading: false,
   error: null,
 };
@@ -199,6 +200,25 @@ const tablectSlice = createSlice({
           item.Va.Average = Number(averageVaCt.toFixed(2));
         }
       }
+    },
+    setMachineType: (
+      state,
+      action: PayloadAction<{ machineTypeValue: string; Id: string }>
+    ) => {
+      state.selectedMachineType = { ...action.payload };
+    },
+    setUpdateMachineType: (
+      state,
+      action: PayloadAction<{ machineTypeValue: string; Id: string }>
+    ) => {
+      const { machineTypeValue, Id } = action.payload;
+      const [machineType, loss] = machineTypeValue.split('_');
+      state.tablect.forEach((item) => {
+        if (item.Id === Id) {
+          item.MachineType = machineType;
+          item.Loss = loss;
+        }
+      });
     },
   },
   extraReducers: (builder) => {
@@ -317,8 +337,8 @@ const tablectSlice = createSlice({
         ) => {
           state.loading = false;
           state.machineTypes = action.payload.map((item) => ({
-            value: `${item.MachineTypeCN}-${item.MachineTypeVN}_${item.Loss}`,
-            label: `${item.MachineTypeCN}-${item.MachineTypeVN}`,
+            value: `${item.MachineTypeCN} - ${item.MachineTypeVN}_${item.Loss}`,
+            label: `${item.MachineTypeCN} - ${item.MachineTypeVN}`,
           }));
           // console.log(action.payload);
         }
@@ -335,6 +355,8 @@ export const {
   setActiveColId,
   setUpdateValueRow,
   setUpdateAverage,
+  setMachineType,
+  setUpdateMachineType,
 } = tablectSlice.actions;
 
 export default tablectSlice.reducer;

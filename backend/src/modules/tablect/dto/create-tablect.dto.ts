@@ -6,7 +6,8 @@ export class CreateTablectDto {
   Path: string;
   Nva: string;
   Va: string;
-  MachineType: string;
+  MachineType?: string;
+  Loss?: string
   ConfirmId?: string;
   IsSave?: boolean;
   CreatedBy: string;

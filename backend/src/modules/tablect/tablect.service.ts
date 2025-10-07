@@ -33,16 +33,15 @@ export class TablectService {
       Path,
       Nva,
       Va,
-      MachineType,
       IsSave,
       CreatedBy,
     } = body;
     await this.IE.query(
       `
       INSERT INTO IE_TableCT
-          (Id, [No], ProgressStagePartName, Area, [Path], Nva, Va, MachineType, IsSave, CreatedBy, CreatedAt)
+          (Id, [No], ProgressStagePartName, Area, [Path], Nva, Va, IsSave, CreatedBy, CreatedAt)
       VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())`,
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())`,
       {
         replacements: [
           Id,
@@ -52,7 +51,6 @@ export class TablectService {
           Path,
           Nva,
           Va,
-          MachineType,
           IsSave,
           CreatedBy,
         ],
@@ -72,17 +70,19 @@ export class TablectService {
   }
 
   async saveData(body: UpdateTablectDto) {
-    const { Id, Nva, Va, IsSave } = body;
+    const { Id, Nva, Va, IsSave, MachineType = '', Loss = '' } = body;
     await this.IE.query(
       `
       UPDATE IE_TableCT
       SET
           Nva = ?,
           Va = ?,
+          MachineType = ?,
+	        Loss = ?,
           IsSave = ?
       WHERE Id = ?`,
       {
-        replacements: [Nva, Va, IsSave, Id],
+        replacements: [Nva, Va, MachineType, Loss, IsSave, Id],
         type: QueryTypes.UPDATE,
       },
     );

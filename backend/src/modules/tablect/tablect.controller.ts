@@ -27,7 +27,6 @@ export class TablectController {
 
   @Patch('save-data')
   async saveData(@Body() body: UpdateTablectDto) {
-    console.log(body);
     return this.tablectService.saveData(body);
   }
 

@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, type MouseEvent } from 'react';
-import Select from 'react-select';
+import Select, { type SingleValue } from 'react-select';
 import {
   TABLE_HEADER,
   type ITableCtPayload,
@@ -14,14 +14,16 @@ import {
   getDepartmentMachineType,
   saveData,
   setActiveColId,
+  setMachineType,
   setUpdateAverage,
+  setUpdateMachineType,
 } from '../features/tablect/tablectSlice';
 import { setCurrentTime } from '../features/controlpanel/controlpanelSlice';
+import excelApi from '../api/excelApi';
 
 const TableCT = () => {
-  const { tablect, activeColId, machineTypes } = useAppSelector(
-    (state) => state.tablect
-  );
+  const { tablect, activeColId, machineTypes, selectedMachineType } =
+    useAppSelector((state) => state.tablect);
   const { activeItemId, activeTabId } = useAppSelector(
     (state) => state.stagelist
   );
@@ -75,13 +77,15 @@ const TableCT = () => {
         payload: item,
       })
     );
+    dispatch(setUpdateMachineType({ ...selectedMachineType }));
     dispatch(setActiveColId(null));
     dispatch(setCurrentTime(0));
   };
 
   const handleSync = () => {
-    console.log('Sync');
+    dispatch(getData());
   };
+
   const handleConfirm = () => {
     const newTablect: ITableCtPayload[] = tablect
       .filter((item) => item.ConfirmId === null)
@@ -93,9 +97,22 @@ const TableCT = () => {
       }));
     dispatch(confirmData(newTablect));
   };
-  const handleExcelLSA = () => {
-    console.log('Excel LSA');
+
+  const handleExcelLSA = async () => {
+    const res = await excelApi.exportLSA();
+    console.log(res);
+    const url = URL.createObjectURL(new Blob([res]));
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Excel LSA.xlsx');
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
+
   const handleExcelTimeStudy = () => {
     console.log('Excel Time Study');
   };
@@ -105,6 +122,7 @@ const TableCT = () => {
     item: ITableData
   ) => {
     e.stopPropagation();
+    // console.log(item);
     dispatch(
       saveData({
         Id: item.Id,
@@ -115,13 +133,13 @@ const TableCT = () => {
         Nva: JSON.stringify(item.Nva),
         Va: JSON.stringify(item.Va),
         MachineType: item.MachineType,
+        Loss: item.Loss,
         IsSave: true,
         CreatedBy: 'admin',
       })
     );
     dispatch(setActiveItemId(null));
     dispatch(setPath(''));
-    // dispatch(historyplaybackCreate(historyplayback));
   };
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>, Id: string) => {
@@ -166,6 +184,13 @@ const TableCT = () => {
         Done
       </div>
     );
+  };
+
+  const handleChangeMachineType = (
+    e: SingleValue<{ value: string; label: string }>,
+    Id: string
+  ) => {
+    dispatch(setMachineType({ machineTypeValue: e?.value as string, Id }));
   };
 
   return (
@@ -277,21 +302,27 @@ const TableCT = () => {
                       {item.MachineType ? (
                         item.MachineType
                       ) : (
-                        // <select className="border w-full py-1 rounded-md border-gray-400">
-                        //   <option value="">May 1</option>
-                        //   <option value="">May 2</option>
-                        //   <option value="">May 3</option>
-                        //   <option value="">May 4</option>
-                        // </select>
-                        <Select
-                          options={machineTypes}
-                          menuPlacement="auto"
-                          menuPortalTarget={document.body}
-                          menuPosition="absolute"
-                          styles={{
-                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          }}
-                        />
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <Select
+                            isDisabled={
+                              item.Id === activeItemId
+                                ? false
+                                : item.Nva.Average < 0 && item.Va.Average < 0
+                                ? false
+                                : true
+                            }
+                            options={machineTypes}
+                            menuPlacement="auto"
+                            menuPortalTarget={document.body}
+                            menuPosition="absolute"
+                            styles={{
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            }}
+                            onChange={(e) =>
+                              handleChangeMachineType(e, item.Id)
+                            }
+                          />
+                        </div>
                       )}
                     </td>
                     <td

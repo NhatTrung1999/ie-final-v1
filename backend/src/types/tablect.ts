@@ -12,3 +12,9 @@ export interface ITablectData {
   CreatedBy: string;
   CreatedAt: string;
 }
+
+export interface ITablectType {
+  Type: string;
+  Cts: number[];
+  Average: number;
+}
