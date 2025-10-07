@@ -8,9 +8,13 @@ export interface ITablectData {
   Nva: string;
   Va: string;
   MachineType: string;
+  Loss: string;
   ConfirmId: string;
   CreatedBy: string;
   CreatedAt: string;
+  Season?: string;
+  Article?: string;
+  CreatedFactory?: string;
 }
 
 export interface ITablectType {

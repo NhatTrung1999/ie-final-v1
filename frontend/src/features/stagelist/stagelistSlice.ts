@@ -3,7 +3,11 @@ import {
   createSlice,
   type PayloadAction,
 } from '@reduxjs/toolkit';
-import type { IStageList, IStageListState } from '../../types/stagelist';
+import type {
+  IFilter,
+  IStageList,
+  IStageListState,
+} from '../../types/stagelist';
 import stagelistApi from '../../api/stagelistApi';
 import type { IFormModal } from '../../types/modal';
 
@@ -18,6 +22,15 @@ const initialState: IStageListState = {
     stage: '',
     area: '',
     article: '',
+  },
+  filter: {
+    DateFrom: new Date().toISOString().slice(0, 10),
+    DateTo: new Date().toISOString().slice(0, 10),
+    Season: '',
+    Stage: '',
+    Area: 'CUTTING',
+    Article: '',
+    Account: '',
   },
   loading: false,
   error: null,
@@ -113,6 +126,9 @@ const stagelistSlice = createSlice({
     ) => {
       state.formUploadVideo = { ...action.payload };
     },
+    setFilter: (state, action: PayloadAction<IFilter>) => {
+      state.filter = { ...action.payload };
+    },
   },
   extraReducers: (builder) => {
     //upload
@@ -168,7 +184,12 @@ const stagelistSlice = createSlice({
   },
 });
 
-export const { setActiveTabId, setPath, setActiveItemId, setFormUploadVideo } =
-  stagelistSlice.actions;
+export const {
+  setActiveTabId,
+  setPath,
+  setActiveItemId,
+  setFormUploadVideo,
+  setFilter,
+} = stagelistSlice.actions;
 
 export default stagelistSlice.reducer;

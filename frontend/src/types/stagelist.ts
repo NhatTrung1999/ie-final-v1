@@ -20,6 +20,16 @@ export interface IStageList {
   CreatedAt: string;
 }
 
+export interface IFilter {
+  DateFrom?: string;
+  DateTo?: string;
+  Season?: string;
+  Stage?: string;
+  Area?: string;
+  Article?: string;
+  Account?: string;
+}
+
 export interface IStageListState {
   stagelist: IStageList[];
   activeTabId: string;
@@ -34,4 +44,5 @@ export interface IStageListState {
     area: string;
     article: string;
   };
+  filter?: IFilter;
 }

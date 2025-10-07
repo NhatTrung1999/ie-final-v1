@@ -11,7 +11,7 @@ const excelApi = {
     const res = await axiosConfig.get('excel/export-time-study', {
       responseType: 'blob',
     });
-    return res
+    return res.data;
   },
 };
 

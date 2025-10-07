@@ -18,7 +18,13 @@ export class ExcelController {
   }
 
   @Get('export-time-study')
-  async exportTimeStudy() {
-    return this.excelService.exportTimeStudy();
+  async exportTimeStudy(@Res() res: Response) {
+    const buffer = await this.excelService.exportTimeStudy();
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=ExcelTimeStudy.xlsx',
+    });
+    res.send(buffer);
   }
 }

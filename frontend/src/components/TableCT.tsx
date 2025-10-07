@@ -113,8 +113,19 @@ const TableCT = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const handleExcelTimeStudy = () => {
-    console.log('Excel Time Study');
+  const handleExcelTimeStudy = async () => {
+    const res = await excelApi.exportTimeStudy();
+    console.log(res);
+    const url = URL.createObjectURL(new Blob([res]));
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Excel TimeStudy.xlsx');
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleSave = (

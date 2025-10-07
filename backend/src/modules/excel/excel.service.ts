@@ -14,6 +14,7 @@ import { CTData, Section, TimeStudyData } from './types';
 import { Sequelize } from 'sequelize-typescript';
 import { QueryTypes } from 'sequelize';
 import { ITablectData, ITablectType } from 'src/types/tablect';
+import { timingSafeEqual } from 'crypto';
 
 @Injectable()
 export class ExcelService {
@@ -131,7 +132,7 @@ export class ExcelService {
     const groupedMap = new Map<string, Section>();
 
     for (const item of records) {
-      const { No, ProgressStagePartName, Area, Nva, Va } = item;
+      const { No, ProgressStagePartName, Area, Nva, Va, Loss } = item;
 
       const vaData = JSON.parse(Va) as ITablectType;
       const nvaData = JSON.parse(Nva) as ITablectType;
@@ -157,6 +158,7 @@ export class ExcelService {
         va: vaAvgCT,
         nvan: nvaAvgCT,
         ct: totalCT,
+        loss: Loss,
       });
 
       section.CT += totalCT;
@@ -221,23 +223,26 @@ export class ExcelService {
         worksheet.getCell(`C${startRow}`).value = item.va;
         worksheet.getCell(`D${startRow}`).value = item.nvan;
         worksheet.getCell(`E${startRow}`).value = item.ct;
+        worksheet.getCell(`F${startRow}`).value = item.loss;
 
-        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].forEach((col) => {
-          worksheet.getCell(`${col}${startRow}`).style = {
-            ...worksheet.getCell(`${col}${startRow}`).style,
-            border: {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'thin' },
-              right: { style: 'thin' },
-            },
-            font: { name: 'Arial', family: 2, size: 10, bold: true },
-            alignment: {
-              vertical: 'middle',
-              horizontal: col.includes('B') ? 'left' : 'center',
-            },
-          };
-        });
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].forEach(
+          (col) => {
+            worksheet.getCell(`${col}${startRow}`).style = {
+              ...worksheet.getCell(`${col}${startRow}`).style,
+              border: {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+              },
+              font: { name: 'Arial', family: 2, size: 10, bold: true },
+              alignment: {
+                vertical: 'middle',
+                horizontal: col.includes('B') ? 'left' : 'center',
+              },
+            };
+          },
+        );
         worksheet.getRow(startRow).height = 24;
         startRow++;
       });
@@ -482,7 +487,554 @@ export class ExcelService {
   }
 
   //Time Study
+  private setMergedCell = (
+    worksheet: ExcelJS.Worksheet,
+    range: string,
+    value?: string,
+    style?: Partial<ExcelJS.Style>,
+  ): void => {
+    if (range.includes(':')) {
+      // Vùng ô: gộp và áp dụng style cho tất cả các ô trong vùng
+      worksheet.mergeCells(range);
+      const [startCell, endCell] = range.split(':');
+      const start = worksheet.getCell(startCell);
+      const end = worksheet.getCell(endCell);
+
+      // Lấy tọa độ cột và hàng
+      const startCol = Number(start.col);
+      const startRow = Number(start.row);
+      const endCol = Number(end.col);
+      const endRow = Number(end.row);
+
+      // Áp dụng value cho ô đầu tiên (nếu có)
+      if (value) {
+        start.value = value;
+      }
+
+      // Áp dụng style cho tất cả các ô trong vùng
+      if (style) {
+        for (let row = startRow; row <= endRow; row++) {
+          for (let col = startCol; col <= endCol; col++) {
+            worksheet.getCell(row, col).style = style;
+          }
+        }
+      }
+    } else {
+      // Ô đơn: không gộp, chỉ áp dụng value và style
+      const cell = worksheet.getCell(range);
+      if (value) {
+        cell.value = value;
+      }
+      if (style) {
+        cell.style = style;
+      }
+    }
+  };
+
   async exportTimeStudy() {
-    return 'export time study';
+    const imagePath = path.join(process.cwd(), '/assets/image/adidas.png');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Time Study');
+    worksheet.properties.defaultRowHeight = 24;
+    worksheet.getColumn('W').width = 14;
+    worksheet.views = [{ showGridLines: false }];
+
+    worksheet.mergeCells('A1:W1');
+    worksheet.getCell('A1').value =
+      'FW COSTING EXCEPTIONAL ADJUSTMENT TIME STUDY TEMPLATE:';
+    for (let col = 1; col <= 23; col++) {
+      worksheet.getCell(1, col).style = {
+        border: {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'medium' },
+        },
+        font: { name: 'adineue PRO TT Black', size: 14, bold: true },
+        alignment: { vertical: 'middle' },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'ccfffff' },
+        },
+      };
+    }
+    const image = fs.readFileSync(imagePath);
+    const imageId = workbook.addImage({
+      buffer: image as any,
+      extension: 'png',
+    });
+    worksheet.addImage(imageId, 'V1:W1');
+
+    cellTimeStudy.forEach((item) => {
+      this.setMergedCell(worksheet, item.range, item.value, item.style);
+    });
+
+    const records: ITablectData[] = await this.IE.query(
+      `SELECT tb.*, sl.Season, sl.Article, sl.CreatedFactory
+        FROM IE_TableCT as tb
+        LEFT JOIN IE_StageList as sl ON sl.Id = tb.Id`,
+      { type: QueryTypes.SELECT },
+    );
+
+    const timeStudyData: ITablectData[] = records;
+    // console.log(timeStudyData);
+
+    if (records.length !== 0) {
+      worksheet.getCell('C3').value = records[0].Season;
+      worksheet.getCell('C3').style = {
+        border: { ...defaultBorder },
+        alignment: { ...defaultAlignment },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'fff9e7' },
+        },
+      };
+      worksheet.getCell('C4').value = records[0].CreatedFactory;
+      worksheet.getCell('C4').style = {
+        border: { ...defaultBorder },
+        alignment: { ...defaultAlignment },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'fff9e7' },
+        },
+      };
+      worksheet.getCell('I4').value = records[0].Article;
+      worksheet.getCell('I4').style = {
+        border: { ...defaultBorder },
+        alignment: { ...defaultAlignment },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'fff9e7' },
+        },
+      };
+    }
+
+    let startRow = 13;
+    const totalCT: CTData = {
+      CT1: 0,
+      CT2: 0,
+      CT3: 0,
+      CT4: 0,
+      CT5: 0,
+      CT6: 0,
+      CT7: 0,
+      CT8: 0,
+      CT9: 0,
+      CT10: 0,
+      AvgCT: 0,
+    };
+
+    timeStudyData.map((item) => {
+      worksheet.mergeCells(`A${startRow}:B${startRow}`);
+      worksheet.getCell(`A${startRow}`).value = item.No;
+      worksheet.mergeCells(`C${startRow}:G${startRow}`);
+      worksheet.getCell(`C${startRow}`).value = item.ProgressStagePartName;
+      worksheet.mergeCells(`H${startRow}:L${startRow}`);
+      const nva = JSON.parse(item.Nva) as ITablectType;
+      worksheet.getCell(`H${startRow}`).value = nva.Type;
+      worksheet.getCell(`M${startRow}`).value = nva.Cts[0];
+      worksheet.getCell(`N${startRow}`).value = nva.Cts[1];
+      worksheet.getCell(`O${startRow}`).value = nva.Cts[2];
+      worksheet.getCell(`P${startRow}`).value = nva.Cts[3];
+      worksheet.getCell(`Q${startRow}`).value = nva.Cts[4];
+      worksheet.getCell(`R${startRow}`).value = nva.Cts[5];
+      worksheet.getCell(`S${startRow}`).value = nva.Cts[6];
+      worksheet.getCell(`T${startRow}`).value = nva.Cts[7];
+      worksheet.getCell(`U${startRow}`).value = nva.Cts[8];
+      worksheet.getCell(`V${startRow}`).value = nva.Cts[9];
+      worksheet.getCell(`W${startRow}`).value = nva.Average;
+
+      [
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H',
+        'I',
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P',
+        'Q',
+        'R',
+        'S',
+        'T',
+        'U',
+        'V',
+        'W',
+      ].map((item) => {
+        worksheet.getCell(`${item}${startRow}`).style = {
+          border: {
+            ...defaultBorder,
+            right: { style: item === 'W' ? 'medium' : 'thin' },
+          },
+          font: {
+            ...defaultFont,
+            name: 'Arial',
+            size: 10,
+            bold: item === 'W' ? true : false,
+          },
+          alignment: {
+            ...defaultAlignment,
+            horizontal:
+              item === 'W'
+                ? 'center'
+                : item === 'A' || item === 'C' || item === 'H'
+                  ? 'left'
+                  : 'right',
+          },
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: item === 'W' ? 'ccffff' : 'fff9e7' },
+          },
+        };
+      });
+
+      totalCT.CT1 += nva.Cts[0];
+      totalCT.CT2 += nva.Cts[1];
+      totalCT.CT3 += nva.Cts[2];
+      totalCT.CT4 += nva.Cts[3];
+      totalCT.CT5 += nva.Cts[4];
+      totalCT.CT6 += nva.Cts[5];
+      totalCT.CT7 += nva.Cts[6];
+      totalCT.CT8 += nva.Cts[7];
+      totalCT.CT9 += nva.Cts[8];
+      totalCT.CT10 += nva.Cts[9];
+      totalCT.AvgCT += nva.Average;
+      startRow++;
+
+      worksheet.mergeCells(`A${startRow}:B${startRow}`);
+      worksheet.getCell(`A${startRow}`).value = '';
+      worksheet.mergeCells(`C${startRow}:G${startRow}`);
+      worksheet.getCell(`C${startRow}`).value = '';
+      worksheet.mergeCells(`H${startRow}:L${startRow}`);
+      const va = JSON.parse(item.Va) as ITablectType;
+      worksheet.getCell(`H${startRow}`).value = va.Type;
+      worksheet.getCell(`M${startRow}`).value = va.Cts[0];
+      worksheet.getCell(`N${startRow}`).value = va.Cts[1];
+      worksheet.getCell(`O${startRow}`).value = va.Cts[2];
+      worksheet.getCell(`P${startRow}`).value = va.Cts[3];
+      worksheet.getCell(`Q${startRow}`).value = va.Cts[4];
+      worksheet.getCell(`R${startRow}`).value = va.Cts[5];
+      worksheet.getCell(`S${startRow}`).value = va.Cts[6];
+      worksheet.getCell(`T${startRow}`).value = va.Cts[7];
+      worksheet.getCell(`U${startRow}`).value = va.Cts[8];
+      worksheet.getCell(`V${startRow}`).value = va.Cts[9];
+      worksheet.getCell(`W${startRow}`).value = va.Average;
+
+      [
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H',
+        'I',
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P',
+        'Q',
+        'R',
+        'S',
+        'T',
+        'U',
+        'V',
+        'W',
+      ].map((item) => {
+        worksheet.getCell(`${item}${startRow}`).style = {
+          border: {
+            ...defaultBorder,
+            right: { style: item === 'W' ? 'medium' : 'thin' },
+          },
+          font: {
+            ...defaultFont,
+            name: 'Arial',
+            size: 10,
+            bold: item === 'W' ? true : false,
+          },
+          alignment: {
+            ...defaultAlignment,
+            horizontal:
+              item === 'W'
+                ? 'center'
+                : item === 'A' || item === 'C' || item === 'H'
+                  ? 'left'
+                  : 'right',
+          },
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: item === 'W' ? 'ccffff' : 'fff9e7' },
+          },
+        };
+      });
+      totalCT.CT1 += va.Cts[0];
+      totalCT.CT2 += va.Cts[1];
+      totalCT.CT3 += va.Cts[2];
+      totalCT.CT4 += va.Cts[3];
+      totalCT.CT5 += va.Cts[4];
+      totalCT.CT6 += va.Cts[5];
+      totalCT.CT7 += va.Cts[6];
+      totalCT.CT8 += va.Cts[7];
+      totalCT.CT9 += va.Cts[8];
+      totalCT.CT10 += va.Cts[9];
+      totalCT.AvgCT += va.Average;
+      startRow++;
+    });
+
+    worksheet.mergeCells(`A${startRow}:L${startRow}`);
+    worksheet.getCell(`A${startRow}`).value = 'Total';
+    for (let col = 1; col <= 12; col++) {
+      worksheet.getCell(startRow, col).style = {
+        border: { ...defaultBorder, bottom: { style: 'medium' } },
+        alignment: { ...defaultAlignment, horizontal: 'center' },
+        font: { ...defaultFont, name: 'Arial', size: 10 },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'ccffff' },
+        },
+      };
+    }
+    let startCol: number = 13;
+    Object.values(totalCT).forEach((item: number) => {
+      worksheet.getCell(startRow, startCol).value = item;
+      worksheet.getCell(startRow, startCol).style = {
+        border: {
+          ...defaultBorder,
+          right: { style: startCol === 23 ? 'medium' : 'thin' },
+          bottom: { style: 'medium' },
+        },
+        font: {
+          ...defaultFont,
+          name: 'Arial',
+          size: startCol === 23 ? 12 : 10,
+        },
+        alignment: {
+          ...defaultAlignment,
+          horizontal: startCol === 23 ? 'center' : 'right',
+        },
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'ccffff' },
+        },
+      };
+      startCol++;
+    });
+    startRow += 2;
+
+    worksheet.mergeCells(`A${startRow}:W${startRow}`);
+    worksheet.getCell(`A${startRow}`).value =
+      'OTHER OBSERVATIONS:  if any/ if needed';
+    for (let col = 1; col <= 23; col++) {
+      worksheet.getCell(startRow, col).style = {
+        border: {
+          ...defaultBorder,
+          top: { style: 'medium' },
+          left: { style: 'medium' },
+          bottom: { style: 'medium' },
+          right: { style: 'medium' },
+        },
+        font: { ...defaultFont, size: 14 },
+        alignment: { ...defaultAlignment },
+        fill: { ...defaultFill },
+      };
+    }
+    startRow++;
+
+    worksheet.mergeCells(`A${startRow}:C${startRow}`);
+    worksheet.getCell(`A${startRow}`).value = 'Type of Machine';
+    worksheet.mergeCells(`D${startRow}:H${startRow}`);
+    worksheet.getCell(`D${startRow}`).value = 'Process';
+    worksheet.mergeCells(`I${startRow}:J${startRow}`);
+    worksheet.getCell(`I${startRow}`).value = 'No. of Machines';
+    worksheet.mergeCells(`K${startRow}:L${startRow}`);
+    worksheet.getCell(`K${startRow}`).value = 'CT (in sec)';
+    worksheet.mergeCells(`M${startRow}:W${startRow}`);
+    worksheet.getCell(`M${startRow}`).value = 'Photo of Finished Components';
+    [
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'H',
+      'I',
+      'J',
+      'K',
+      'L',
+      'M',
+      'N',
+      'O',
+      'P',
+      'Q',
+      'R',
+      'S',
+      'T',
+      'U',
+      'V',
+      'W',
+    ].forEach((item) => {
+      worksheet.getCell(`${item}${startRow}`).style = {
+        border: {
+          ...defaultBorder,
+          left: { style: item === 'M' ? 'medium' : 'thin' },
+          right: { style: item === 'W' ? 'medium' : 'thin' },
+        },
+        font: { ...defaultFont, name: 'Arial', size: 8 },
+        alignment: {
+          ...defaultAlignment,
+          horizontal: item === 'M' ? 'left' : 'center',
+        },
+        fill: { ...defaultFill },
+      };
+    });
+    startRow++;
+
+    for (let i = startRow; i <= startRow + 6; i++) {
+      worksheet.mergeCells(`A${i}:C${i}`);
+      worksheet.mergeCells(`D${i}:H${i}`);
+      worksheet.mergeCells(`I${i}:J${i}`);
+      worksheet.mergeCells(`K${i}:L${i}`);
+      ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].forEach(
+        (item) => {
+          worksheet.getCell(`${item}${i}`).style = {
+            border: {
+              ...defaultBorder,
+              bottom: { style: i === startRow + 6 ? 'medium' : 'thin' },
+            },
+            fill: {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'fff9e7' },
+            },
+          };
+        },
+      );
+    }
+
+    worksheet.mergeCells(`M${startRow}:W${startRow + 6}`);
+    for (let row = startRow; row <= startRow + 6; row++) {
+      for (let col = 13; col <= 23; col++) {
+        worksheet.getCell(row, col).style = {
+          border: {
+            ...defaultBorder,
+            left: { style: col === 13 ? 'medium' : 'thin' },
+            right: { style: col === 23 ? 'medium' : 'thin' },
+            bottom: { style: 'medium' },
+          },
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'fff9e7' },
+          },
+        };
+      }
+    }
+    startRow += 8;
+
+    worksheet.mergeCells(`A${startRow}:W${startRow}`);
+    worksheet.getCell(`A${startRow}`).value =
+      'ADDITIONAL NOTES/ RECOMMENDATION:';
+    for (let col = 1; col <= 23; col++) {
+      worksheet.getCell(startRow, col).style = {
+        border: {
+          ...defaultBorder,
+          top: { style: 'medium' },
+          left: { style: 'medium' },
+          bottom: { style: 'medium' },
+          right: { style: 'medium' },
+        },
+        font: { ...defaultFont, size: 14 },
+        alignment: { ...defaultAlignment },
+        fill: { ...defaultFill },
+      };
+    }
+    startRow++;
+
+    worksheet.mergeCells(`A${startRow}:W${startRow + 6}`);
+    for (let row = startRow; row <= startRow + 6; row++) {
+      for (let col = 1; col <= 23; col++) {
+        worksheet.getCell(row, col).style = {
+          border: {
+            ...defaultBorder,
+            right: { style: col === 23 ? 'medium' : 'thin' },
+            bottom: { style: 'medium' },
+          },
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'fff9e7' },
+          },
+        };
+      }
+    }
+    startRow += 8;
+
+    worksheet.mergeCells(`A${startRow}:W${startRow}`);
+    worksheet.getCell(`A${startRow}`).value = 'DETAILED PROCESS ILLUSTRATIONS:';
+    for (let col = 1; col <= 23; col++) {
+      worksheet.getCell(startRow, col).style = {
+        border: {
+          ...defaultBorder,
+          top: { style: 'medium' },
+          left: { style: 'medium' },
+          bottom: { style: 'medium' },
+          right: { style: 'medium' },
+        },
+        font: { ...defaultFont, size: 14 },
+        alignment: { ...defaultAlignment },
+        fill: { ...defaultFill },
+      };
+    }
+    startRow++;
+
+    worksheet.mergeCells(`A${startRow}:W${startRow + 45}`);
+    worksheet.getCell(`A${startRow}`).value =
+      'VIDEO and Pictures with detailed descriptions';
+    for (let row = startRow; row <= startRow + 45; row++) {
+      for (let col = 1; col <= 23; col++) {
+        worksheet.getCell(row, col).style = {
+          border: {
+            ...defaultBorder,
+            right: { style: col === 23 ? 'medium' : 'thin' },
+            bottom: { style: 'medium' },
+          },
+          font: {
+            ...defaultFont,
+            name: 'Arial',
+            size: 14,
+            color: { argb: 'FF0000' },
+          },
+          alignment: { ...defaultAlignment, vertical: 'top' },
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'fff9e7' },
+          },
+        };
+      }
+    }
+    return await workbook.xlsx.writeBuffer();
   }
 }

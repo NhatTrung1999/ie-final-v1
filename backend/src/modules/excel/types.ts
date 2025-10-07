@@ -12,6 +12,7 @@ export interface Row {
   va: number;
   nvan: number;
   ct: number;
+  loss: string;
 }
 
 export interface Section {
