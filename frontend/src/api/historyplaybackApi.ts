@@ -19,6 +19,12 @@ const historyplaybackApi = {
     );
     return res.data;
   },
+  historyplaybackDeleteMultiple: async (HistoryPlaybackId: string) => {
+    const res = await axiosConfig.delete(
+      `historyplayback/historyplayback-delete-multiple?HistoryPlaybackId=${HistoryPlaybackId}`
+    );
+    return res.data;
+  },
 };
 
 export default historyplaybackApi;

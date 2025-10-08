@@ -1,4 +1,5 @@
 import axiosConfig from '../libs/axiosConfig';
+import type { IFilter } from '../types/stagelist';
 
 const stagelistApi = {
   stagelistUpload: async (
@@ -20,8 +21,10 @@ const stagelistApi = {
     });
     return res.data;
   },
-  stagelistList: async () => {
-    const res = await axiosConfig.get('stagelist/stagelist-list');
+  stagelistList: async (payload: IFilter) => {
+    const res = await axiosConfig.get('stagelist/stagelist-list', {
+      params: { ...payload },
+    });
     return res.data;
   },
   stagelistDelete: async (id: string) => {

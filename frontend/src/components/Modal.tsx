@@ -74,11 +74,11 @@ const Modal = ({ setIsOpen }: Props) => {
     },
   });
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setProgress(0);
-    setController(null);
-  };
+  // const handleClose = () => {
+  //   setIsOpen(false);
+  //   setProgress(0);
+  //   setController(null);
+  // };
 
   const handleCancelUpload = () => {
     if (controller) {
@@ -107,7 +107,7 @@ const Modal = ({ setIsOpen }: Props) => {
       <div className="w-full max-w-sm bg-white flex rounded-md shadow-lg flex-col p-2">
         <div className="border-b border-gray-200 p-3 flex items-center justify-between text-gray-600">
           <h1 className="text-2xl font-bold">Upload Video</h1>
-          <div className="p-1 cursor-pointer" onClick={handleClose}>
+          <div className="p-1 cursor-pointer" onClick={handleCancelUpload}>
             <IoClose size={24} />
           </div>
         </div>

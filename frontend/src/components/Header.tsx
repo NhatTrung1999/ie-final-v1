@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { FaCircleUser } from 'react-icons/fa6';
-import { TbLogout } from 'react-icons/tb';
+import { TbLogout, TbFilterCog } from 'react-icons/tb';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { logout } from '../features/auth/authSlice';
-import { IoClose, IoSearch } from 'react-icons/io5';
+import { IoClose } from 'react-icons/io5';
 import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
+import { stagelistList } from '../features/stagelist/stagelistSlice';
+import { getData } from '../features/tablect/tablectSlice';
+
+
 const Header = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
@@ -22,7 +26,9 @@ const Header = () => {
       Article: filter?.Article,
     },
     onSubmit: async (data) => {
-      console.log(data);
+      dispatch(stagelistList({ ...data }));
+      dispatch(getData({ ...data }));
+      setIsFilterOpen(false)
     },
   });
 
@@ -46,7 +52,7 @@ const Header = () => {
             className="p-2 bg-gray-300/40 rounded-full text-white cursor-pointer"
             onClick={toggleFilter}
           >
-            <IoSearch size={22} />
+            <TbFilterCog size={22} />
           </div>
           <div className="flex items-center gap-2 bg-gray-500 px-3 py-2 rounded-full text-white relative cursor-pointer">
             <div className="font-semibold" onClick={handleOpen}>
@@ -164,6 +170,8 @@ const Header = () => {
                 onChange={formik.handleChange}
                 className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300"
               >
+                <option value="">Choose option</option>
+
                 {AREA.map((item, index) => (
                   <option key={index} value={item.value}>
                     {item.label}
@@ -194,7 +202,7 @@ const Header = () => {
                 type="submit"
                 className="w-full px-2 py-2 cursor-pointer font-medium hover:cursor-pointer text-white bg-gray-500 rounded-lg hover:bg-gray-600 "
               >
-                Search
+                Apply
               </button>
             </div>
           </form>

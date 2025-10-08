@@ -19,48 +19,6 @@ export class HistoryplaybackService {
   }
 
   async historyplaybackCreate(body: CreateHistoryplaybackDto) {
-    // const records: IHistoryplaybackData[] = [];
-    // for (let item of body) {
-    //   const {
-    //     Id,
-    //     HistoryPlaybackId,
-    //     Type,
-    //     Start,
-    //     Stop,
-    //     CreatedBy,
-    //     CreatedFactory,
-    //   } = item;
-    //   await this.IE.query(
-    //     `INSERT INTO IE_HistoryPlayback
-    //         (Id, HistoryPlaybackId, [Type], [Start], Stop, CreatedBy, CreatedFactory, CreatedAt)
-    //     VALUES
-    //         (?, ?, ?, ?, ?, ?, ?, GETDATE())`,
-    //     {
-    //       replacements: [
-    //         Id,
-    //         HistoryPlaybackId,
-    //         Type,
-    //         Start,
-    //         Stop,
-    //         CreatedBy,
-    //         CreatedFactory,
-    //       ],
-    //       type: QueryTypes.SELECT,
-    //     },
-    //   );
-
-    //   const res: IHistoryplaybackData[] = await this.IE.query(
-    //     `SELECT *
-    //       FROM IE_HistoryPlayback
-    //       WHERE Id = ?`,
-    //     { replacements: [Id], type: QueryTypes.SELECT },
-    //   );
-
-    //   // return res[0];
-    //   records.push(res[0]);
-    // }
-
-    // return records;
     const {
       Id,
       HistoryPlaybackId,
@@ -105,6 +63,23 @@ export class HistoryplaybackService {
       replacements: [Id],
       type: QueryTypes.DELETE,
     });
+
+    const records: IHistoryplaybackData[] = await this.IE.query(
+      `SELECT *
+        FROM IE_HistoryPlayback`,
+      { type: QueryTypes.SELECT },
+    );
+    return records;
+  }
+
+  async historyplaybackDeleteMultiple(HistoryPlaybackId: string) {
+    await this.IE.query(
+      `DELETE FROM IE_HistoryPlayback WHERE HistoryPlaybackId = ?`,
+      {
+        replacements: [HistoryPlaybackId],
+        type: QueryTypes.DELETE,
+      },
+    );
 
     const records: IHistoryplaybackData[] = await this.IE.query(
       `SELECT *

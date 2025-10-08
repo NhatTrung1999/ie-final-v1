@@ -34,7 +34,7 @@ const HistoryPlayback = () => {
     e.stopPropagation();
     const { Id, Start, Stop, Type } = item;
     const diffValue = Number(Stop) - Number(Start);
-    // console.log(diffValue);
+    console.log(diffValue);
     dispatch(
       setDiffTypes({ type: Type, valueTime: Number(diffValue.toFixed(2)) })
     );

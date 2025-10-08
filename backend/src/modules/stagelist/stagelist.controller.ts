@@ -5,7 +5,8 @@ import {
   Get,
   Param,
   Post,
-  Req,
+  Query,
+  Request,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,13 +23,29 @@ export class StagelistController {
   async stagelistUpload(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() body: CreateStagelistDto,
+    @Request() req,
   ) {
-    return await this.stagelistService.stagelistUpload(body, files);
+    return await this.stagelistService.stagelistUpload(body, files, req.user);
   }
 
   @Get('stagelist-list')
-  async stagelistList() {
-    return await this.stagelistService.stagelistList();
+  async stagelistList(
+    @Query('DateFrom') DateFrom: string,
+    @Query('DateTo') DateTo: string,
+    @Query('Season') Season: string,
+    @Query('Stage') Stage: string,
+    @Query('Area') Area: string,
+    @Query('Article') Article: string,
+  ) {
+    // console.log(DateFrom, DateTo, Season, Stage, Area, Article);
+    return await this.stagelistService.stagelistList(
+      DateFrom,
+      DateTo,
+      Season,
+      Stage,
+      Area,
+      Article,
+    );
   }
 
   @Delete('stagelist-delete/:id')

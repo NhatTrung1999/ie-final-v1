@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { BadRequestException, Module } from '@nestjs/common';
 import { StagelistService } from './stagelist.service';
 import { StagelistController } from './stagelist.controller';
 import { DatabaseModule } from 'src/database/database.module';
@@ -41,6 +41,25 @@ import * as path from 'path';
             cb(null, finalName);
           },
         }),
+        fileFilter: (req, file, cb) => {
+          const allowedMimeTypes = [
+            'video/mp4',
+            'video/mpeg',
+            'video/quicktime', // mov
+            'video/x-msvideo', // avi
+            'video/x-matroska', // mkv
+          ];
+
+          if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(
+              new BadRequestException(
+                `Invalid file format: "${file.originalname}". Only video files are allowed (mp4, avi, mov, mkv).`,
+              ),
+              false,
+            );
+          }
+          cb(null, true);
+        },
       }),
       inject: [ConfigService],
     }),

@@ -38,6 +38,16 @@ export const historyplaybackDelete = createAsyncThunk(
   }
 );
 
+export const historyplaybackDeleteMultiple = createAsyncThunk(
+  'historyplayback/historyplayback-delete-multiple',
+  async (HistoryPlaybackId: string) => {
+    const res = await historyplaybackApi.historyplaybackDeleteMultiple(
+      HistoryPlaybackId
+    );
+    return res;
+  }
+);
+
 const initialState: IHistoryplaybackState = {
   historyplayback: [],
   loading: false,
@@ -109,6 +119,23 @@ const historyplaybackSlice = createSlice({
         }
       )
       .addCase(historyplaybackDelete.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(historyplaybackDeleteMultiple.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        historyplaybackDeleteMultiple.fulfilled,
+        (state, action: PayloadAction<IHistoryplaybackData[]>) => {
+          state.loading = false;
+          state.historyplayback = action.payload;
+        }
+      )
+      .addCase(historyplaybackDeleteMultiple.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

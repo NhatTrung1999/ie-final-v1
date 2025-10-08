@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { TablectService } from './tablect.service';
 import { CreateTablectDto } from './dto/create-tablect.dto';
@@ -16,8 +17,22 @@ export class TablectController {
   constructor(private readonly tablectService: TablectService) {}
 
   @Get('get-data')
-  getData() {
-    return this.tablectService.getData();
+  getData(
+    @Query('DateFrom') DateFrom: string,
+    @Query('DateTo') DateTo: string,
+    @Query('Season') Season: string,
+    @Query('Stage') Stage: string,
+    @Query('Area') Area: string,
+    @Query('Article') Article: string,
+  ) {
+    return this.tablectService.getData(
+      DateFrom,
+      DateTo,
+      Season,
+      Stage,
+      Area,
+      Article,
+    );
   }
 
   @Post('create-data')

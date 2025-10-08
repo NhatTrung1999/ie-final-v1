@@ -1,9 +1,12 @@
 import axiosConfig from '../libs/axiosConfig';
+import type { IFilter } from '../types/stagelist';
 import type { ITableCtPayload, ITableCtResponse } from '../types/tablect';
 
 const tablectApi = {
-  getData: async (): Promise<ITableCtResponse[]> => {
-    const res = await axiosConfig.get('tablect/get-data');
+  getData: async (payload: IFilter): Promise<ITableCtResponse[]> => {
+    const res = await axiosConfig.get('tablect/get-data', {
+      params: { ...payload },
+    });
     return res.data;
   },
   createData: async (payload: ITableCtPayload): Promise<ITableCtResponse> => {

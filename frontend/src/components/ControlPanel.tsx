@@ -14,6 +14,7 @@ import { setUpdateValueRow } from '../features/tablect/tablectSlice';
 import { historyplaybackCreate } from '../features/historyplayback/historyplaybackSlice';
 import { v4 as uuidv4 } from 'uuid';
 import type { IHistoryplaybackPayload } from '../types/historyplayback';
+import { useEffect } from 'react';
 
 const ControlPanel = () => {
   const { playRef } = usePlayer();
@@ -21,7 +22,10 @@ const ControlPanel = () => {
   const { activeItemId } = useAppSelector((state) => state.stagelist);
   const { isPlaying, duration, currentTime, startTime, stopTime, types } =
     useAppSelector((state) => state.controlpanel);
+    const { auth } =
+    useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+
   const handleStartStop = () => {
     dispatch(setIsPlaying(!isPlaying));
     if (!isPlaying) {
@@ -70,13 +74,28 @@ const ControlPanel = () => {
       Type: type,
       Start: String(startTime),
       Stop: String(stopTime),
-      CreatedBy: 'admin',
-      CreatedFactory: 'LYV',
+      CreatedBy: auth?.UserID || '',
+      CreatedFactory: auth?.Factory || '',
     };
 
     dispatch(setTypes({ type, valueTime: Number(valueType.toFixed(2)) }));
     dispatch(historyplaybackCreate(newData));
   };
+
+  useEffect(() => {
+    if (!activeColId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleStartStop();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleStartStop, activeColId]);
 
   return (
     <div className="border border-gray-500 flex flex-col overflow-y-auto">

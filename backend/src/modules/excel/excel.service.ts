@@ -14,7 +14,6 @@ import { CTData, Section, TimeStudyData } from './types';
 import { Sequelize } from 'sequelize-typescript';
 import { QueryTypes } from 'sequelize';
 import { ITablectData, ITablectType } from 'src/types/tablect';
-import { timingSafeEqual } from 'crypto';
 
 @Injectable()
 export class ExcelService {
@@ -94,37 +93,50 @@ export class ExcelService {
     });
   }
 
-  // async exportLSA() {
-  //   const workbook = new ExcelJS.Workbook();
-  //   const sheet = workbook.addWorksheet('Demo Sheet');
+  async exportLSA(
+    DateFrom: string,
+    DateTo: string,
+    Season: string,
+    Stage: string,
+    Area: string,
+    Article: string,
+  ) {
+    let where = 'WHERE 1=1';
+    const replacements: any[] = [];
 
-  //   // Header row
-  //   sheet.addRow(['ID', 'Name', 'Age', 'Email']);
+    if (DateFrom && DateTo) {
+      where += ` AND sl.[Date] BETWEEN ? AND ?`;
+      replacements.push(DateFrom, DateTo);
+    }
 
-  //   // Sample data
-  //   const data = [
-  //     { id: 1, name: 'Alice', age: 25, email: 'alice@example.com' },
-  //     { id: 2, name: 'Bob', age: 30, email: 'bob@example.com' },
-  //   ];
+    if (Season) {
+      where += ` AND sl.Season LIKE ?`;
+      replacements.push(`%${Season}%`);
+    }
 
-  //   data.forEach((item) => {
-  //     sheet.addRow([item.id, item.name, item.age, item.email]);
-  //   });
+    if (Stage) {
+      where += ` AND sl.Stage LIKE ?`;
+      replacements.push(`%${Stage}%`);
+    }
 
-  //   // Styling header
-  //   sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
-  //   sheet.getRow(1).fill = {
-  //     type: 'pattern',
-  //     pattern: 'solid',
-  //     fgColor: { argb: '4F81BD' },
-  //   };
-  //   return await workbook.xlsx.writeBuffer();
-  // }
+    if (Area) {
+      where += ` AND sl.Area LIKE ?`;
+      replacements.push(`%${Area}%`);
+    }
 
-  async exportLSA() {
+    if (Article) {
+      where += ` AND sl.Article LIKE ?`;
+      replacements.push(`%${Article}%`);
+    }
+
     const records: ITablectData[] = await this.IE.query(
-      `SELECT * FROM IE_TableCT`,
+      `SELECT tb.*
+        FROM IE_TableCT AS tb
+        LEFT JOIN IE_StageList AS sl ON sl.Id = tb.Id
+        ${where}
+        ORDER BY tb.CreatedAt`,
       {
+        replacements,
         type: QueryTypes.SELECT,
       },
     );
@@ -531,7 +543,52 @@ export class ExcelService {
     }
   };
 
-  async exportTimeStudy() {
+  async exportTimeStudy(
+    DateFrom: string,
+    DateTo: string,
+    Season: string,
+    Stage: string,
+    Area: string,
+    Article: string,
+  ) {
+    let where = 'WHERE 1=1';
+    const replacements: any[] = [];
+
+    if (DateFrom && DateTo) {
+      where += ` AND sl.[Date] BETWEEN ? AND ?`;
+      replacements.push(DateFrom, DateTo);
+    }
+
+    if (Season) {
+      where += ` AND sl.Season LIKE ?`;
+      replacements.push(`%${Season}%`);
+    }
+
+    if (Stage) {
+      where += ` AND sl.Stage LIKE ?`;
+      replacements.push(`%${Stage}%`);
+    }
+
+    if (Area) {
+      where += ` AND sl.Area LIKE ?`;
+      replacements.push(`%${Area}%`);
+    }
+
+    if (Article) {
+      where += ` AND sl.Article LIKE ?`;
+      replacements.push(`%${Article}%`);
+    }
+
+    const records: ITablectData[] = await this.IE.query(
+      `SELECT tb.*, sl.Season, sl.Article, sl.CreatedFactory
+        FROM IE_TableCT as tb
+        LEFT JOIN IE_StageList as sl ON sl.Id = tb.Id
+        ${where}`,
+      { replacements, type: QueryTypes.SELECT },
+    );
+
+    const timeStudyData: ITablectData[] = records;
+
     const imagePath = path.join(process.cwd(), '/assets/image/adidas.png');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Time Study');
@@ -569,16 +626,6 @@ export class ExcelService {
     cellTimeStudy.forEach((item) => {
       this.setMergedCell(worksheet, item.range, item.value, item.style);
     });
-
-    const records: ITablectData[] = await this.IE.query(
-      `SELECT tb.*, sl.Season, sl.Article, sl.CreatedFactory
-        FROM IE_TableCT as tb
-        LEFT JOIN IE_StageList as sl ON sl.Id = tb.Id`,
-      { type: QueryTypes.SELECT },
-    );
-
-    const timeStudyData: ITablectData[] = records;
-    // console.log(timeStudyData);
 
     if (records.length !== 0) {
       worksheet.getCell('C3').value = records[0].Season;

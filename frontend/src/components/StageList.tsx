@@ -21,14 +21,15 @@ const StageList = () => {
   const startX = useRef<number>(0);
   const scrollLeftStart = useRef<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { stagelist, activeTabId, activeItemId } = useAppSelector(
+  const { stagelist, activeTabId, activeItemId, filter } = useAppSelector(
     (state) => state.stagelist
   );
   const { tablect } = useAppSelector((state) => state.tablect);
+  const { auth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(stagelistList());
+    dispatch(stagelistList({ ...filter }));
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement | null>) => {
@@ -88,9 +89,9 @@ const StageList = () => {
     const newData: ITableCtPayload = {
       Id: item.Id,
       // TablectId: item.Id,
-      No: item.Name.split('. ')[0] || 'Unknown',
+      No: item.Name?.split('. ')[0] || 'Unknown',
       ProgressStagePartName:
-        item.Name.split('. ')[1].split('.')[0] || 'Unknown',
+        item.Name?.split('. ')[1]?.split('.')[0] || 'Unknown',
       Area: item.Area,
       Path: item.Path,
       Nva: JSON.stringify({
@@ -106,7 +107,7 @@ const StageList = () => {
       MachineType: '',
       ConfirmId: '',
       IsSave: false,
-      CreatedBy: 'admin',
+      CreatedBy: auth?.UserID || '',
     };
 
     dispatch(setPath(item.Path));
@@ -126,7 +127,7 @@ const StageList = () => {
   };
 
   const handleRefresh = () => {
-    dispatch(stagelistList());
+    dispatch(stagelistList({ ...filter }));
   };
 
   return (
@@ -183,6 +184,7 @@ const StageList = () => {
                   item.Id === activeItemId ? 'bg-gray-300' : ''
                 }`}
                 onClick={() => handelClick(item)}
+                title={item.Name}
               >
                 <div className="truncate">{item.Name}</div>
                 <div

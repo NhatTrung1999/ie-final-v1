@@ -24,7 +24,7 @@ export class AuthService {
   }
 
   async login(user: IAuth) {
-    const payload = { username: user.Name, sub: user.UserID };
+    const payload = { username: user.Name, sub: user.UserID, factory: user.Factory };
     return {
       auth: {
         Id: user.Id,

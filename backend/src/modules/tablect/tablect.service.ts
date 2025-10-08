@@ -8,18 +8,68 @@ import { CreateTablectDto } from './dto/create-tablect.dto';
 import { QueryTypes } from 'sequelize';
 import { ITablectData } from 'src/types/tablect';
 import { UpdateTablectDto } from './dto/update-tablect.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TablectService {
-  constructor(@Inject('IE') private readonly IE: Sequelize) {}
+  constructor(
+    @Inject('IE') private readonly IE: Sequelize,
+    private readonly configService: ConfigService,
+  ) {}
 
-  async getData() {
-    const records: ITablectData[] = await this.IE.query(
-      `SELECT *
-        FROM IE_TableCT
-        ORDER BY CreatedAt`,
-      { type: QueryTypes.SELECT },
+  async getData(
+    DateFrom: string,
+    DateTo: string,
+    Season: string,
+    Stage: string,
+    Area: string,
+    Article: string,
+  ) {
+    let where = 'WHERE 1=1';
+    const replacements: any[] = [];
+
+    if (DateFrom && DateTo) {
+      where += ` AND sl.[Date] BETWEEN ? AND ?`;
+      replacements.push(DateFrom, DateTo);
+    }
+
+    if (Season) {
+      where += ` AND sl.Season LIKE ?`;
+      replacements.push(`%${Season}%`);
+    }
+
+    if (Stage) {
+      where += ` AND sl.Stage LIKE ?`;
+      replacements.push(`%${Stage}%`);
+    }
+
+    if (Area) {
+      where += ` AND sl.Area LIKE ?`;
+      replacements.push(`%${Area}%`);
+    }
+
+    if (Article) {
+      where += ` AND sl.Article LIKE ?`;
+      replacements.push(`%${Article}%`);
+    }
+
+    let records: ITablectData[] = await this.IE.query(
+      `SELECT tb.*
+        FROM IE_TableCT AS tb
+        LEFT JOIN IE_StageList AS sl ON sl.Id = tb.Id
+        ${where}
+        ORDER BY tb.CreatedAt`,
+      { replacements, type: QueryTypes.SELECT },
     );
+
+    records = records.map((item) => {
+      const normalizedPath = item.Path.replace(/\\/g, '/');
+      const relativePath = normalizedPath.split('/uploads')[1];
+      return {
+        ...item,
+        Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
+      };
+    });
 
     return records;
   }
@@ -58,13 +108,22 @@ export class TablectService {
       },
     );
 
-    const records: ITablectData[] = await this.IE.query(
+    let records: ITablectData[] = await this.IE.query(
       `SELECT *
         FROM IE_TableCT
         WHERE Id = ?
         ORDER BY CreatedAt`,
       { replacements: [Id], type: QueryTypes.SELECT },
     );
+
+    records = records.map((item) => {
+      const normalizedPath = item.Path.replace(/\\/g, '/');
+      const relativePath = normalizedPath.split('/uploads')[1];
+      return {
+        ...item,
+        Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
+      };
+    });
 
     return records[0];
   }
@@ -102,14 +161,6 @@ export class TablectService {
       replacements: [Id],
       type: QueryTypes.DELETE,
     });
-
-    await this.IE.query(
-      `DELETE FROM IE_HistoryPlayback WHERE HistoryPlaybackId = ?`,
-      {
-        replacements: [Id],
-        type: QueryTypes.DELETE,
-      },
-    );
 
     const records: ITablectData[] = await this.IE.query(
       `SELECT *

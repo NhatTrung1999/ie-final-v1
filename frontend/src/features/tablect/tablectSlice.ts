@@ -10,12 +10,13 @@ import type {
   ITableData,
 } from '../../types/tablect';
 import tablectApi from '../../api/tablectApi';
+import type { IFilter } from '../../types/stagelist';
 
 export const getData = createAsyncThunk(
   'tablect/get-data',
-  async (_, { rejectWithValue }) => {
+  async (payload: IFilter, { rejectWithValue }) => {
     try {
-      let res = await tablectApi.getData();
+      let res = await tablectApi.getData(payload);
       return res;
     } catch (error: any) {
       console.log(error);

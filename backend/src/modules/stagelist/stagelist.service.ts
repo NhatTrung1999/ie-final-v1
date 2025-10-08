@@ -25,9 +25,11 @@ export class StagelistService {
   async stagelistUpload(
     createStagelistDto: CreateStagelistDto,
     files: Array<Express.Multer.File>,
+    user: any,
   ) {
     try {
       const { date, season, stage, area, article } = createStagelistDto;
+      const { userId, factory } = user;
       let resData: IStageListData[] = [];
 
       const basePath = path.join(
@@ -39,10 +41,13 @@ export class StagelistService {
         area,
         article,
       );
+
       if (!fs.existsSync(basePath)) {
         fs.mkdirSync(basePath, { recursive: true });
       }
+
       for (let item of files) {
+        const originalName = Buffer.from(item.originalname, 'latin1').toString('utf-8')
         const id = uuidv4();
         const filePath = path.join(basePath, item.filename);
         await this.IE.query(
@@ -82,10 +87,10 @@ export class StagelistService {
               stage,
               area,
               article,
-              item.filename,
+              originalName,
               filePath,
-              'admin',
-              'LYV',
+              userId,
+              factory,
             ],
             type: QueryTypes.INSERT,
           },
@@ -113,12 +118,48 @@ export class StagelistService {
     }
   }
 
-  async stagelistList() {
+  async stagelistList(
+    DateFrom: string,
+    DateTo: string,
+    Season: string,
+    Stage: string,
+    Area: string,
+    Article: string,
+  ) {
+    let where = 'WHERE 1=1';
+    const replacements: any[] = [];
+
+    if (DateFrom && DateTo) {
+      where += ` AND [Date] BETWEEN ? AND ?`;
+      replacements.push(DateFrom, DateTo);
+    }
+
+    if (Season) {
+      where += ` AND Season LIKE ?`;
+      replacements.push(`%${Season}%`);
+    }
+
+    if (Stage) {
+      where += ` AND Stage LIKE ?`;
+      replacements.push(`%${Stage}%`);
+    }
+
+    if (Area) {
+      where += ` AND Area LIKE ?`;
+      replacements.push(`%${Area}%`);
+    }
+
+    if (Article) {
+      where += ` AND Article LIKE ?`;
+      replacements.push(`%${Article}%`);
+    }
+
     let records: IStageListData[] = await this.IE.query(
       `SELECT *
         FROM IE_StageList
+        ${where}
         ORDER BY CreatedAt`,
-      { type: QueryTypes.SELECT },
+      { replacements, type: QueryTypes.SELECT },
     );
     records = records.map((item) => {
       const normalizedPath = item.Path.replace(/\\/g, '/');

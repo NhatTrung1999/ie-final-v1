@@ -30,4 +30,11 @@ export class HistoryplaybackController {
   async historyplaybackDelete(@Query('Id') Id: string) {
     return this.historyplaybackService.historyplaybackDelete(Id);
   }
+
+  @Delete('historyplayback-delete-multiple')
+  async historyplaybackDeleteMultiple(
+    @Query('HistoryPlaybackId') HistoryPlaybackId: string,
+  ) {
+    return this.historyplaybackService.historyplaybackDeleteMultiple(HistoryPlaybackId);
+  }
 }

@@ -20,11 +20,13 @@ import {
 } from '../features/tablect/tablectSlice';
 import { setCurrentTime } from '../features/controlpanel/controlpanelSlice';
 import excelApi from '../api/excelApi';
+import { toast } from 'react-toastify';
+import { historyplaybackDeleteMultiple } from '../features/historyplayback/historyplaybackSlice';
 
 const TableCT = () => {
   const { tablect, activeColId, machineTypes, selectedMachineType } =
     useAppSelector((state) => state.tablect);
-  const { activeItemId, activeTabId } = useAppSelector(
+  const { activeItemId, activeTabId, filter } = useAppSelector(
     (state) => state.stagelist
   );
   const { auth } = useAppSelector((state) => state.auth);
@@ -32,7 +34,7 @@ const TableCT = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getData());
+    dispatch(getData({ ...filter }));
     dispatch(getDepartmentMachineType());
   }, []);
 
@@ -83,7 +85,7 @@ const TableCT = () => {
   };
 
   const handleSync = () => {
-    dispatch(getData());
+    dispatch(getData({ ...filter }));
   };
 
   const handleConfirm = () => {
@@ -99,33 +101,50 @@ const TableCT = () => {
   };
 
   const handleExcelLSA = async () => {
-    const res = await excelApi.exportLSA();
-    console.log(res);
-    const url = URL.createObjectURL(new Blob([res]));
+    const isConfirm = tablect.every((item) => item.ConfirmId !== null);
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Excel LSA.xlsx');
-    document.body.appendChild(link);
-    link.click();
+    if (isConfirm) {
+      try {
+        const res = await excelApi.exportLSA({ ...filter });
+        const url = URL.createObjectURL(new Blob([res]));
 
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'Excel LSA.xlsx');
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      toast.warn('Please confirm your userId before export excel!');
+    }
   };
 
   const handleExcelTimeStudy = async () => {
-    const res = await excelApi.exportTimeStudy();
-    console.log(res);
-    const url = URL.createObjectURL(new Blob([res]));
+    const isConfirm = tablect.every((item) => item.ConfirmId !== null);
+    if (isConfirm) {
+      try {
+        const res = await excelApi.exportTimeStudy({ ...filter });
+        const url = URL.createObjectURL(new Blob([res]));
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Excel TimeStudy.xlsx');
-    document.body.appendChild(link);
-    link.click();
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'Excel TimeStudy.xlsx');
+        document.body.appendChild(link);
+        link.click();
 
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      toast.warn('Please confirm your userId before export excel!');
+    }
   };
 
   const handleSave = (
@@ -156,6 +175,7 @@ const TableCT = () => {
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>, Id: string) => {
     e.stopPropagation();
     dispatch(deleteData(Id));
+    dispatch(historyplaybackDeleteMultiple(Id));
   };
 
   const handleCheckAction = (item: ITableData) => {
@@ -210,12 +230,17 @@ const TableCT = () => {
         <div className="px-2 py-2 flex items-center justify-between">
           <div className="font-bold">TableCT</div>
           <div className="flex items-center gap-2">
-            <div
-              className="bg-red-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+            <button
+              className={`bg-red-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
+                tablect.length === 0
+                  ? 'cursor-not-allowed opacity-70'
+                  : 'cursor-pointer hover:opacity-70'
+              }`}
               onClick={handleSync}
+              disabled={tablect.length === 0 ? true : false}
             >
-              Sync
-            </div>
+              Refresh
+            </button>
             <button
               className={`bg-blue-500 px-2 py-1 font-semibold rounded-md  ${
                 tablect.length === 0
@@ -227,18 +252,28 @@ const TableCT = () => {
             >
               Confirm
             </button>
-            <div
-              className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+            <button
+              className={`bg-green-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
+                tablect.length === 0
+                  ? 'cursor-not-allowed opacity-70'
+                  : 'cursor-pointer hover:opacity-70'
+              }`}
               onClick={handleExcelLSA}
+              disabled={tablect.length === 0 ? true : false}
             >
               Excel LSA
-            </div>
-            <div
-              className="bg-green-500 px-2 py-1 font-semibold rounded-md cursor-pointer hover:opacity-70"
+            </button>
+            <button
+              className={`bg-green-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
+                tablect.length === 0
+                  ? 'cursor-not-allowed opacity-70'
+                  : 'cursor-pointer hover:opacity-70'
+              }`}
               onClick={handleExcelTimeStudy}
+              disabled={tablect.length === 0 ? true : false}
             >
               Excel Time Study
-            </div>
+            </button>
           </div>
         </div>
       </div>

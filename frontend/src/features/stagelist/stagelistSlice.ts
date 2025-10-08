@@ -28,7 +28,7 @@ const initialState: IStageListState = {
     DateTo: new Date().toISOString().slice(0, 10),
     Season: '',
     Stage: '',
-    Area: 'CUTTING',
+    Area: '',
     Article: '',
     Account: '',
   },
@@ -79,10 +79,17 @@ export const stagelistUpload = createAsyncThunk(
   }
 );
 
-export const stagelistList = createAsyncThunk('stagelist/list', async () => {
-  const res = await stagelistApi.stagelistList();
-  return res as IStageList[];
-});
+export const stagelistList = createAsyncThunk(
+  'stagelist/list',
+  async (payload: IFilter, { rejectWithValue }) => {
+    try {
+      const res = await stagelistApi.stagelistList(payload);
+      return res as IStageList[];
+    } catch (error) {
+      return rejectWithValue(error || '');
+    }
+  }
+);
 
 export const stagelistDelete = createAsyncThunk(
   'stagelist/delete',

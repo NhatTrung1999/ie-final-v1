@@ -19,7 +19,7 @@ const Player = () => {
         ref={playRef}
         url={path}
         muted
-        controls
+        // controls
         playing={isPlaying}
         onDuration={(duration: number) => dispatch(setDuration(duration))}
         onProgress={(state: OnProgressProps) => {
