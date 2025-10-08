@@ -6,6 +6,7 @@ import type { IFormModal } from '../types/modal';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   setFormUploadVideo,
+  stagelistList,
   stagelistUpload,
 } from '../features/stagelist/stagelistSlice';
 import { useEffect, useState } from 'react';
@@ -38,7 +39,9 @@ const validationSchema = Yup.object({
 const Modal = ({ setIsOpen }: Props) => {
   const [progress, setProgress] = useState<number>(0);
   const [controller, setController] = useState<AbortController | null>(null);
-  const { formUploadVideo } = useAppSelector((state) => state.stagelist);
+  const { formUploadVideo, filter } = useAppSelector(
+    (state) => state.stagelist
+  );
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
@@ -66,6 +69,7 @@ const Modal = ({ setIsOpen }: Props) => {
       );
       if (stagelistUpload.fulfilled.match(result)) {
         toast.success('Upload video success!');
+        dispatch(stagelistList({ ...filter }));
       } else {
         toast.error(result.payload as string);
       }

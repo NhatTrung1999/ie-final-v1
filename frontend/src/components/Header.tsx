@@ -6,14 +6,14 @@ import { logout } from '../features/auth/authSlice';
 import { IoClose } from 'react-icons/io5';
 import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
-import { stagelistList } from '../features/stagelist/stagelistSlice';
+import { setFilter, stagelistList } from '../features/stagelist/stagelistSlice';
 import { getData } from '../features/tablect/tablectSlice';
-
 
 const Header = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const { filter } = useAppSelector((state) => state.stagelist);
+  const { auth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
@@ -26,9 +26,10 @@ const Header = () => {
       Article: filter?.Article,
     },
     onSubmit: async (data) => {
+      dispatch(setFilter({ ...data }));
       dispatch(stagelistList({ ...data }));
       dispatch(getData({ ...data }));
-      setIsFilterOpen(false)
+      setIsFilterOpen(false);
     },
   });
 
@@ -56,11 +57,11 @@ const Header = () => {
           </div>
           <div className="flex items-center gap-2 bg-gray-500 px-3 py-2 rounded-full text-white relative cursor-pointer">
             <div className="font-semibold" onClick={handleOpen}>
-              Administrator
+              {auth?.Name}
             </div>
             <FaCircleUser size={26} />
             {open && (
-              <div className="absolute top-12 bg-white left-0 right-0 p-2 text-black rounded-md">
+              <div className="absolute top-12 bg-white right-0 p-2 text-black rounded-md w-[150px]">
                 <div
                   onClick={handleLogout}
                   className="flex items-center justify-between font-medium hover:bg-gray-300 px-2 py-1 cursor-pointer"

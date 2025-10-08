@@ -47,7 +47,9 @@ export class StagelistService {
       }
 
       for (let item of files) {
-        const originalName = Buffer.from(item.originalname, 'latin1').toString('utf-8')
+        const originalName = Buffer.from(item.originalname, 'latin1').toString(
+          'utf-8',
+        );
         const id = uuidv4();
         const filePath = path.join(basePath, item.filename);
         await this.IE.query(
@@ -97,8 +99,8 @@ export class StagelistService {
         );
 
         const result: IStageListData[] = await this.IE.query(
-          `SELECT * FROM IE_StageList WHERE Id = ?`,
-          { replacements: [id], type: QueryTypes.SELECT },
+          `SELECT * FROM IE_StageList WHERE Id = ? AND CONVERT(VARCHAR, [Date], 23) = ?`,
+          { replacements: [id, date], type: QueryTypes.SELECT },
         );
         resData.push(result[0]);
       }
@@ -169,7 +171,6 @@ export class StagelistService {
         Path: `${this.configService.get('BASEPATH')}/uploads${relativePath}`,
       };
     });
-    // console.log(response);
     return records;
   }
 

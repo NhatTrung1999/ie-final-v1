@@ -5,6 +5,7 @@ import type { ILoginPayload } from '../../types/auth';
 import { useAppDispatch } from '../../app/hooks';
 import { login } from '../../features/auth/authSlice';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 const initialValues: ILoginPayload = {
   username: '',
@@ -40,18 +41,18 @@ const Login = () => {
         localStorage.setItem('category', category as string);
         navigate('/');
       } else {
-        console.log(result.error);
+        toast.error(result.payload as string);
       }
     },
   });
 
   return (
-    <div className="min-h-screen bg-amber-50 flex justify-center items-center">
+    <div className="min-h-screen bg-gray-500 flex justify-center items-center">
       <div className="w-full max-w-3xl bg-white flex rounded-lg shadow-lg">
         <div className="flex-1 p-2">
           <img
             src={loginImage}
-            className="size-96 bg-amber-50 p-2 rounded-lg shadow-2xs h-full"
+            className="size-96 bg-gray-200 p-2 rounded-lg shadow-2xs h-full"
           />
         </div>
         <div className="flex-1 p-8 space-y-6">

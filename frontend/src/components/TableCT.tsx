@@ -89,6 +89,11 @@ const TableCT = () => {
   };
 
   const handleConfirm = () => {
+    const isCheckConfirm = tablect.every((item) => item.ConfirmId !== null);
+    if (!isCheckConfirm) {
+      toast.warn('You have already confirmed!');
+    }
+
     const newTablect: ITableCtPayload[] = tablect
       .filter((item) => item.ConfirmId === null)
       .map((item) => ({

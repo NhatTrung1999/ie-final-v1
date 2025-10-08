@@ -46,7 +46,7 @@ const controlpanelSlice = createSlice({
     ) => {
       const { type, valueTime } = action.payload;
       const newValueTime = state.types[type] - valueTime;
-      state.types[type] -= newValueTime < 0 ? 0 : newValueTime;
+      state.types[type] = newValueTime < 0 ? 0 : newValueTime;
     },
     resetTypes: (state) => {
       state.types = { ...state.types, NVA: 0, VA: 0, SKIP: 0 };

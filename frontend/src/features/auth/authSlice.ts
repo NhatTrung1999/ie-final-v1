@@ -26,11 +26,15 @@ const initialState: IAuthState = {
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (payload: ILoginPayload) => {
-    const { auth, accessToken } = await authApi.login(payload);
-    localStorage.setItem('auth', JSON.stringify(auth));
-    localStorage.setItem('accessToken', accessToken);
-    return { auth, accessToken } as IAuthResponse;
+  async (payload: ILoginPayload, { rejectWithValue }) => {
+    try {
+      const { auth, accessToken } = await authApi.login(payload);
+      localStorage.setItem('auth', JSON.stringify(auth));
+      localStorage.setItem('accessToken', accessToken);
+      return { auth, accessToken } as IAuthResponse;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || '');
+    }
   }
 );
 
