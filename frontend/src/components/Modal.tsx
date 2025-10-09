@@ -69,10 +69,10 @@ const Modal = ({ setIsOpen }: Props) => {
       );
       if (stagelistUpload.fulfilled.match(result)) {
         toast.success('Upload video success!');
-        dispatch(stagelistList({ ...filter }));
       } else {
         toast.error(result.payload as string);
       }
+      dispatch(stagelistList({ ...filter }));
       setIsOpen(false);
       setProgress(0);
     },

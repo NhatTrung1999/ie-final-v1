@@ -99,7 +99,7 @@ export class StagelistService {
         );
 
         const result: IStageListData[] = await this.IE.query(
-          `SELECT * FROM IE_StageList WHERE Id = ? AND CONVERT(VARCHAR, [Date], 23) = ?`,
+          `SELECT * FROM IE_StageList WHERE Id = ?`,
           { replacements: [id, date], type: QueryTypes.SELECT },
         );
         resData.push(result[0]);

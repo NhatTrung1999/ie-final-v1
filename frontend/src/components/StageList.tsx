@@ -28,9 +28,25 @@ const StageList = () => {
   const { auth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
+  // const filteredStageList = stagelist.filter((item) => {
+  //   if (filter?.DateFrom || filter?.DateTo) return item.Area === activeTabId;
+
+  //   const date = new Date(item.Date);
+  //   const from = new Date(filter?.DateFrom || '');
+  //   const to = new Date(filter?.DateTo || '');
+  //   console.log(from.setHours(0, 0, 0, 0), to.setHours(23, 59, 59, 999));
+  //   return (
+  //     item.Area === activeTabId &&
+  //     date >= new Date(from.setHours(0, 0, 0, 0)) &&
+  //     date <= new Date(to.setHours(23, 59, 59, 999))
+  //   );
+  // });
+
+  // console.log(filteredStageList);
+
   useEffect(() => {
     dispatch(stagelistList({ ...filter }));
-  }, []);
+  }, [dispatch, filter]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement | null>) => {
     isDragging.current = true;
@@ -129,6 +145,22 @@ const StageList = () => {
   const handleRefresh = () => {
     dispatch(stagelistList({ ...filter }));
   };
+
+  // console.log(
+  //   stagelist.filter((item) => {
+  //     if (!filter?.DateFrom || !filter?.DateTo) return true;
+
+  //     const created = new Date(item.Date);
+  //     const from = new Date(filter.DateFrom);
+  //     const to = new Date(filter.DateTo);
+
+  //     const createdDate = created.setHours(0, 0, 0, 0);
+  //     const fromDate = from.setHours(0, 0, 0, 0);
+  //     const toDate = to.setHours(23, 59, 59, 999);
+  //     console.log(createdDate, fromDate, toDate);
+  //     return createdDate >= fromDate && createdDate <= toDate;
+  //   })
+  // );
 
   return (
     <>

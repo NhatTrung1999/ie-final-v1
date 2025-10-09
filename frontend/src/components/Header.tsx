@@ -6,8 +6,8 @@ import { logout } from '../features/auth/authSlice';
 import { IoClose } from 'react-icons/io5';
 import { AREA, STAGE } from '../types/constant';
 import { useFormik } from 'formik';
-import { setFilter, stagelistList } from '../features/stagelist/stagelistSlice';
-import { getData } from '../features/tablect/tablectSlice';
+import { setActiveItemId, setFilter, stagelistList } from '../features/stagelist/stagelistSlice';
+import { getData, setActiveColId } from '../features/tablect/tablectSlice';
 
 const Header = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -30,6 +30,8 @@ const Header = () => {
       dispatch(stagelistList({ ...data }));
       dispatch(getData({ ...data }));
       setIsFilterOpen(false);
+      dispatch(setActiveItemId(null))
+      dispatch(setActiveColId(null))
     },
   });
 

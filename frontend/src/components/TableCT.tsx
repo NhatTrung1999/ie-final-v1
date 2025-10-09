@@ -18,7 +18,10 @@ import {
   setUpdateAverage,
   setUpdateMachineType,
 } from '../features/tablect/tablectSlice';
-import { setCurrentTime } from '../features/controlpanel/controlpanelSlice';
+import {
+  setCurrentTime,
+  setDuration,
+} from '../features/controlpanel/controlpanelSlice';
 import excelApi from '../api/excelApi';
 import { toast } from 'react-toastify';
 import { historyplaybackDeleteMultiple } from '../features/historyplayback/historyplaybackSlice';
@@ -36,7 +39,7 @@ const TableCT = () => {
   useEffect(() => {
     dispatch(getData({ ...filter }));
     dispatch(getDepartmentMachineType());
-  }, []);
+  }, [filter, dispatch]);
 
   const handleClickRow = (item: ITableData) => {
     const rowId = item.Id;
@@ -69,7 +72,7 @@ const TableCT = () => {
   };
 
   const handleDone = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLButtonElement>,
     item: ITableData
   ) => {
     e.stopPropagation();
@@ -82,18 +85,14 @@ const TableCT = () => {
     dispatch(setUpdateMachineType({ ...selectedMachineType }));
     dispatch(setActiveColId(null));
     dispatch(setCurrentTime(0));
+    dispatch(setDuration(0));
   };
 
   const handleSync = () => {
     dispatch(getData({ ...filter }));
   };
 
-  const handleConfirm = () => {
-    const isCheckConfirm = tablect.every((item) => item.ConfirmId !== null);
-    if (!isCheckConfirm) {
-      toast.warn('You have already confirmed!');
-    }
-
+  const handleConfirm = async () => {
     const newTablect: ITableCtPayload[] = tablect
       .filter((item) => item.ConfirmId === null)
       .map((item) => ({
@@ -102,7 +101,17 @@ const TableCT = () => {
         Va: JSON.stringify(item.Va),
         ConfirmId: auth?.UserID || '',
       }));
-    dispatch(confirmData(newTablect));
+    let result = await dispatch(confirmData(newTablect));
+    if (confirmData.fulfilled.match(result)) {
+      await dispatch(getData({ ...filter }));
+      console.log(tablect);
+      const checkConfirmId = tablect.every((item) => item.ConfirmId !== null);
+      if (checkConfirmId) {
+        toast.warn('You have already confirmed!');
+        return;
+      }
+      toast.success('Confirm success!');
+    }
   };
 
   const handleExcelLSA = async () => {
@@ -153,7 +162,7 @@ const TableCT = () => {
   };
 
   const handleSave = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLButtonElement>,
     item: ITableData
   ) => {
     e.stopPropagation();
@@ -181,6 +190,8 @@ const TableCT = () => {
     e.stopPropagation();
     dispatch(deleteData(Id));
     dispatch(historyplaybackDeleteMultiple(Id));
+    dispatch(setActiveItemId(null));
+    dispatch(setActiveColId(null));
   };
 
   const handleCheckAction = (item: ITableData) => {
@@ -204,21 +215,21 @@ const TableCT = () => {
         );
       }
       return (
-        <div
-          className="bg-blue-500 px-2 py-1 text-white font-medium rounded-md"
+        <button
+          className={`bg-blue-500 px-2 py-1 text-white font-medium rounded-md`}
           onClick={(e) => handleSave(e, item)}
         >
           Save
-        </div>
+        </button>
       );
     }
     return (
-      <div
-        className="bg-green-500 px-2 py-1 text-white font-medium rounded-md"
+      <button
+        className={`bg-green-500 px-2 py-1 text-white font-medium rounded-md`}
         onClick={(e) => handleDone(e, item)}
       >
         Done
-      </div>
+      </button>
     );
   };
 

@@ -98,7 +98,7 @@ const historyplaybackSlice = createSlice({
         historyplaybackCreate.fulfilled,
         (state, action: PayloadAction<IHistoryplaybackData>) => {
           state.loading = false;
-          state.historyplayback.push(action.payload);
+          state.historyplayback.unshift(action.payload);
         }
       )
       .addCase(historyplaybackCreate.rejected, (state, action) => {

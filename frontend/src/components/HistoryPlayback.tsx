@@ -34,7 +34,6 @@ const HistoryPlayback = () => {
     e.stopPropagation();
     const { Id, Start, Stop, Type } = item;
     const diffValue = Number(Stop) - Number(Start);
-    console.log(diffValue);
     dispatch(
       setDiffTypes({ type: Type, valueTime: Number(diffValue.toFixed(2)) })
     );
@@ -61,7 +60,7 @@ const HistoryPlayback = () => {
           .map((item, i) => (
             <div
               key={i}
-              className="bg-amber-500  rounded-md font-bold flex items-center justify-between p-1 cursor-pointer"
+              className="bg-gray-400  rounded-md font-bold flex items-center justify-between p-1 cursor-pointer"
               onClick={() => handleSeek(item.Start)}
             >
               <div className="bg-gray-500 px-3 py-1 text-lg text-white rounded-md">
