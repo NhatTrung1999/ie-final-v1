@@ -19,8 +19,10 @@ import {
   setUpdateMachineType,
 } from '../features/tablect/tablectSlice';
 import {
+  resetTypes,
   setCurrentTime,
   setDuration,
+  setIsPlaying,
 } from '../features/controlpanel/controlpanelSlice';
 import excelApi from '../api/excelApi';
 import { toast } from 'react-toastify';
@@ -46,10 +48,14 @@ const TableCT = () => {
     if (rowId === activeItemId) {
       dispatch(setPath('null'));
       dispatch(setActiveItemId(null));
+      dispatch(setCurrentTime(0));
+      dispatch(setDuration(0));
     } else {
       dispatch(setPath(item.Path));
       dispatch(setActiveItemId(rowId));
     }
+    dispatch(resetTypes());
+    dispatch(setIsPlaying(false));
     dispatch(setActiveColId(null));
   };
 
@@ -63,10 +69,13 @@ const TableCT = () => {
     const { Nva, Va } = item;
     const avgNva = Nva.Average;
     const avgVa = Va.Average;
-    // console.log(avgNva, avgVa);
+
     if (!activeItemId) return;
     if (rowId !== activeItemId) return;
     if (avgNva && avgVa) return;
+    if (activeColId === colId) {
+      dispatch(setIsPlaying(false));
+    }
 
     dispatch(setActiveColId(colId));
   };
@@ -248,45 +257,61 @@ const TableCT = () => {
           <div className="flex items-center gap-2">
             <button
               className={`bg-red-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
-                tablect.length === 0
+                tablect.filter((item) => item.Area === activeTabId).length === 0
                   ? 'cursor-not-allowed opacity-70'
                   : 'cursor-pointer hover:opacity-70'
               }`}
               onClick={handleSync}
-              disabled={tablect.length === 0 ? true : false}
+              disabled={
+                tablect.filter((item) => item.Area === activeTabId).length === 0
+                  ? true
+                  : false
+              }
             >
               Refresh
             </button>
             <button
               className={`bg-blue-500 px-2 py-1 font-semibold rounded-md  ${
-                tablect.length === 0
+                tablect.filter((item) => item.Area === activeTabId).length === 0
                   ? 'cursor-not-allowed opacity-70'
                   : 'cursor-pointer hover:opacity-70'
               }`}
               onClick={handleConfirm}
-              disabled={tablect.length === 0 ? true : false}
+              disabled={
+                tablect.filter((item) => item.Area === activeTabId).length === 0
+                  ? true
+                  : false
+              }
             >
               Confirm
             </button>
             <button
               className={`bg-green-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
-                tablect.length === 0
+                tablect.filter((item) => item.Area === activeTabId).length === 0
                   ? 'cursor-not-allowed opacity-70'
                   : 'cursor-pointer hover:opacity-70'
               }`}
               onClick={handleExcelLSA}
-              disabled={tablect.length === 0 ? true : false}
+              disabled={
+                tablect.filter((item) => item.Area === activeTabId).length === 0
+                  ? true
+                  : false
+              }
             >
               Excel LSA
             </button>
             <button
               className={`bg-green-500 px-2 py-1 font-semibold rounded-md hover:opacity-70 ${
-                tablect.length === 0
+                tablect.filter((item) => item.Area === activeTabId).length === 0
                   ? 'cursor-not-allowed opacity-70'
                   : 'cursor-pointer hover:opacity-70'
               }`}
               onClick={handleExcelTimeStudy}
-              disabled={tablect.length === 0 ? true : false}
+              disabled={
+                tablect.filter((item) => item.Area === activeTabId).length === 0
+                  ? true
+                  : false
+              }
             >
               Excel Time Study
             </button>

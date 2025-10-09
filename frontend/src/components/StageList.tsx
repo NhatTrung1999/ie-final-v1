@@ -14,6 +14,12 @@ import {
 import type { ITableCtPayload } from '../types/tablect';
 import { createData, setActiveColId } from '../features/tablect/tablectSlice';
 import { toast } from 'react-toastify';
+import {
+  resetTypes,
+  setCurrentTime,
+  setDuration,
+  setIsPlaying,
+} from '../features/controlpanel/controlpanelSlice';
 
 const StageList = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -134,12 +140,16 @@ const StageList = () => {
     if (item.Id === activeItemId) {
       dispatch(setActiveItemId(null));
       dispatch(setPath(''));
-      dispatch(setActiveColId(null));
+      dispatch(setCurrentTime(0));
+      dispatch(setDuration(0));
     } else {
       dispatch(setActiveItemId(item.Id));
       dispatch(setPath(item.Path));
     }
     handleCreateRowData(item);
+    dispatch(resetTypes());
+    dispatch(setIsPlaying(false));
+    dispatch(setActiveColId(null));
   };
 
   const handleRefresh = () => {

@@ -47,7 +47,7 @@ export class StagelistService {
       }
 
       for (let item of files) {
-        const originalName = Buffer.from(item.originalname, 'latin1').toString(
+        const originalName = Buffer.from(item.filename, 'latin1').toString(
           'utf-8',
         );
         const id = uuidv4();

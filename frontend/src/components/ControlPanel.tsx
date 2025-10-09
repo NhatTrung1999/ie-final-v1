@@ -22,14 +22,16 @@ const ControlPanel = () => {
   const { activeItemId } = useAppSelector((state) => state.stagelist);
   const { isPlaying, duration, currentTime, startTime, stopTime, types } =
     useAppSelector((state) => state.controlpanel);
-    const { auth } =
-    useAppSelector((state) => state.auth);
+  const { auth } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const handleStartStop = () => {
     dispatch(setIsPlaying(!isPlaying));
     if (!isPlaying) {
       dispatch(setStartTime(currentTime));
+      if (playRef.current) {
+        playRef.current.getInternalPlayer().play();
+      }
     } else {
       dispatch(setStopTime(currentTime));
     }
