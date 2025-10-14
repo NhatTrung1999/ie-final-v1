@@ -103,6 +103,7 @@ const TableCT = () => {
 
   const handleConfirm = async () => {
     const newTablect: ITableCtPayload[] = tablect
+      .filter((item) => item.Area.toLowerCase() === activeTabId.toLowerCase())
       .filter((item) => item.ConfirmId === null)
       .map((item) => ({
         ...item,
@@ -114,7 +115,9 @@ const TableCT = () => {
     if (confirmData.fulfilled.match(result)) {
       await dispatch(getData({ ...filter }));
       console.log(tablect);
-      const checkConfirmId = tablect.every((item) => item.ConfirmId !== null);
+      const checkConfirmId = tablect
+        .filter((item) => item.Area.toLowerCase() === activeTabId.toLowerCase())
+        .every((item) => item.ConfirmId !== null);
       if (checkConfirmId) {
         toast.warn('You have already confirmed!');
         return;
@@ -247,6 +250,12 @@ const TableCT = () => {
     Id: string
   ) => {
     dispatch(setMachineType({ machineTypeValue: e?.value as string, Id }));
+  };
+
+  const handleCheckDisabled = (item: ITableData): boolean | undefined => {
+    if (item.Nva.Average > 0 && item.Va.Average > 0) return true;
+    if (item.ConfirmId !== null) return true;
+    return item.Id === activeItemId ? false : true;
   };
 
   return (
@@ -391,13 +400,7 @@ const TableCT = () => {
                       ) : (
                         <div onClick={(e) => e.stopPropagation()}>
                           <Select
-                            isDisabled={
-                              item.Id === activeItemId
-                                ? false
-                                : item.Nva.Average < 0 && item.Va.Average < 0
-                                ? false
-                                : true
-                            }
+                            isDisabled={handleCheckDisabled(item)}
                             options={machineTypes}
                             menuPlacement="auto"
                             menuPortalTarget={document.body}
