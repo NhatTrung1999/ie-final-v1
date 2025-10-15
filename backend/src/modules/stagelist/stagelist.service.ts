@@ -33,7 +33,7 @@ export class StagelistService {
       let resData: IStageListData[] = [];
       const networkPath =
         this.configService.get<string>('UPLOAD_DESTINATION') ||
-        '\\192.168.0.102\\cie\\videos';
+        '\\192.168.0.102\\cie\\IE_VIDEO';
 
       const basePath = path.join(
         networkPath,
@@ -119,10 +119,10 @@ export class StagelistService {
 
       resData = resData.map((item) => {
         const normalizedPath = item.Path.replace(/\\/g, '/');
-        const relativePath = normalizedPath.split('/videos')[1];
+        const relativePath = normalizedPath.split('/IE_VIDEO')[1];
         return {
           ...item,
-          Path: `${this.configService.get('BASEPATH')}/videos${relativePath}`,
+          Path: `${this.configService.get('BASEPATH')}/IE_VIDEO${relativePath}`,
         };
       });
 
@@ -177,10 +177,10 @@ export class StagelistService {
     );
     records = records.map((item) => {
       const normalizedPath = item.Path.replace(/\\/g, '/');
-      const relativePath = normalizedPath.split('/videos')[1];
+      const relativePath = normalizedPath.split('/IE_VIDEO')[1];
       return {
         ...item,
-        Path: `${this.configService.get('BASEPATH')}/videos${relativePath}`,
+        Path: `${this.configService.get('BASEPATH')}/IE_VIDEO${relativePath}`,
       };
     });
     return records;

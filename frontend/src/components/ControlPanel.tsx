@@ -29,7 +29,9 @@ const ControlPanel = () => {
     dispatch(setIsPlaying(!isPlaying));
     if (!isPlaying) {
       dispatch(setStartTime(currentTime));
+      console.log(currentTime);
       if (playRef.current) {
+        playRef.current.seekTo(currentTime, 'seconds');
         playRef.current.getInternalPlayer().play();
       }
     } else {
@@ -38,6 +40,9 @@ const ControlPanel = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isPlaying) {
+      return;
+    }
     const newValue = Number(e.target.value);
     if (playRef.current) {
       playRef.current.seekTo(newValue, 'seconds');
